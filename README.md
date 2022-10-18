@@ -10,6 +10,9 @@ Project Proposal Doc: https://docs.google.com/document/d/1Yl-RqufEqbRA9tiASvdXXW
 Vision Statement Doc: https://docs.google.com/document/d/1s-oI0ZeV8gtgRm2gVKJcQJro9EUkMLNex4oKgRsP6x0/edit?usp=sharing
 Four Personas Doc: https://docs.google.com/document/d/1Wj0bjpiVvBNf44rSyA2jAdtV-C6_LgCzSFIdO1QHEFA/edit?usp=sharing
 Project Board: https://github.com/orgs/cis3296f22/projects/97/views/1
+Canvas Project Scrum Assignment: https://templeu.instructure.com/courses/111775/assignments/1684194?module_item_id=4334499
+Canvas Final Project Assignment: https://templeu.instructure.com/courses/111775/assignments/1684177
+Final Project Slideshow: https://docs.google.com/presentation/d/1NVaFhOVlrwaS7WHmIXqEa2vlAmIVo0nabkphQpIDJ8U/edit?usp=sharing
 
 ![Snake hunt screenshot](/mockup.png)
 # How to run
