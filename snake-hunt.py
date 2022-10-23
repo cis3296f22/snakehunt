@@ -1,4 +1,13 @@
 import pygame
+from random import randint
+##import math
+##from math import floor as flr
+
+BOARD = (500,500)
+CELL = 25
+COLS = BOARD[0]/CELL
+ROWS = BOARD[1]/CELL
+
 
 # A single part of a snake.
 class BodyPart():
@@ -19,6 +28,9 @@ class BodyPart():
 
     def render(self, surface):
         pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2));
+
+
+
 
 class Snake():
     def __init__(self, position, length, xdir, ydir, color, field_dimension):
@@ -87,17 +99,46 @@ class Snake():
         for part in self.body:
             part.render(surface)
 
-def render(surface, snake):
+
+#pellet object control
+class Pellet():
+
+    def __init__(self):
+        self.position = self.setPos()
+        self.eaten = False
+        self.color = (255, 0, 0)
+        self.width = CELL
+        self.height = CELL
+        
+        #self.image = 
+    def setPos(self):
+        xpos = randint(1, COLS-1)*CELL
+        ypos = randint(1,ROWS-1)*CELL
+        
+        return (xpos, ypos)
+    def getPos(self):
+        return self.position[0], self.position[1]
+    def render(self, surface):
+        xpos, ypos = self.getPos()
+        #pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2))
+        pygame.draw.rect(surface, self.color, (xpos, ypos, self.height-2, self.width-2))
+    def destroy(self):
+        self.position = self.setPos()
+        
+
+def render(surface, snake, pellet):
     surface.fill((0, 0, 0))
     snake.render(surface)
+    pellet.render(surface)
     pygame.display.update()
 
 def main():
-    field_dimensions = (500, 500)
-    win = pygame.display.set_mode(field_dimensions)
+    field_dimensions = BOARD
+    win = pygame.display.set_mode(BOARD)
     initial_pos = (250, 250)
     color = (0, 255, 0)
     snake = Snake(initial_pos, 1, 1, 0, color, field_dimensions)
+    pellet = Pellet()
     clock = pygame.time.Clock()
     running = True
 
@@ -105,10 +146,20 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+
+        print(snake.head.position, pellet.getPos())
+        if(snake.head.position == pellet.getPos()):
+            print(snake.head.position, pellet.getPos())
+            pellet.destroy()
         snake.change_direction()
         snake.move()
-        render(win, snake)
+
+        render(win, snake, pellet)
         clock.tick(15)
+
+    pygame.quit()
+    
 
 if __name__ == "__main__":
     main()
