@@ -16,9 +16,22 @@ A multiplayer snake game. Each player controls a snake. Each snake must avoid co
 
 ![Snake hunt screenshot](/mockup.png)
 # How to run
-To run the game's proof of concept, you will need to download Python (https://www.python.org/downloads/) (preferably version 3.7 or newer) and install Pygame(https://www.pygame.org/wiki/GettingStarted). You will need to clone [this repo](https://github.com/katrinajaneczko/snake-game) so that you can run the python file locally.<br>
+On Windows:
+Download snake-hunt.exe from the dist folder. Your antivirus software and Windows Defender may give you warnings about downloading the executable, but just ignore them. 
 
-In the above repo, use a terminal to get into the 'Game' directory, then run the command `python snake_oop.py`, and you should get a Pygame window with a simple working snake game.
+On Mac:
+Download snake-hunt.exe from the snakehunt_mac folder. 
+
+Alternatively, if you do not want to download an executable for Windows or Mac, or if you use Linux,
+* Install Python (https://www.python.org/downloads/) (preferably version 3.7 or newer)
+* Install Pygame (https://www.pygame.org/wiki/GettingStarted)
+* Clone this repo
+* Open a terminal
+* Navigate to the cloned repo's root directory
+* Enter the command `python snake-hunt.py` (or `python3 snake-hunt.py` depending on your Python version)
+
+You now have a working copy of the game!
+
 
 # How to contribute
 Follow this project board to know the latest status of the project: [https://github.com/orgs/cis3296f22/projects/97](https://github.com/orgs/cis3296f22/projects/97)  
