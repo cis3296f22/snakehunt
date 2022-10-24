@@ -98,10 +98,36 @@ class Snake():
     def render(self, surface):
         for part in self.body:
             part.render(surface)
-            
+    
+    # Increase length by amount and add the corresponding
+    # amount of body parts to the snake
     def grow(self, amount):
-        self.__init__(self.position, self.length + amount, self.head.xdir, self.head.ydir, self.color, self.field_dimension)
-
+        size = self.length
+        self.length = size + amount
+        
+        previous = self.body[size-1]
+        
+        # initialize elements from the previous part for readability
+        xdir = previous.xdir
+        ydir = previous.ydir
+        width = previous.width
+        
+        # if the previous part is moving right, append
+        # this part to the left of it with the same direction
+        if xdir == 1 and ydir == 0:
+            self.body.append(BodyPart((previous.position[0]-width,previous.position[1]), xdir, ydir, self.color))
+        # if the previous part is moving left, append
+        # this part to the right of it with the same direction
+        elif xdir == -1 and ydir == 0:
+            self.body.append(BodyPart((previous.position[0]+width,previous.position[1]), xdir, ydir, self.color))
+        # if the previous part is moving up, append
+        # this part to the bottom of it with the same direction
+        elif xdir == 0 and ydir == 1:
+            self.body.append(BodyPart((previous.position[0],previous.position[1]-width), xdir, ydir, self.color))
+        # if the previous part is moving down, append
+        # this part to the top of it with the same direction
+        elif xdir == 0 and ydir == -1:
+            self.body.append(BodyPart((previous.position[0],previous.position[1]+width), xdir, ydir, self.color))
 
 #pellet object control
 class Pellet():
