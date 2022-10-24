@@ -1,13 +1,15 @@
 import pygame
 from random import randint
-##import math
+from tkinter import messagebox
+#import math
 ##from math import floor as flr
 
-BOARD = (500,500)
+WIDTH = 500
+HEIGHT = 500
+BOARD = (WIDTH,HEIGHT)
 CELL = 25
 COLS = BOARD[0]/CELL
 ROWS = BOARD[1]/CELL
-
 
 # A single part of a snake.
 class BodyPart():
@@ -30,8 +32,6 @@ class BodyPart():
         pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2));
 
 
-
-
 class Snake():
     def __init__(self, position, length, xdir, ydir, color, field_dimension):
         self.body = []
@@ -50,6 +50,16 @@ class Snake():
             posx -= 25
         self.head = self.body[0]
 
+    # Reset snake so player can play again once they die
+    def reset(self, position):
+        self.body = []
+        self.turns = {}
+        self.position = position
+        self.body.append(self.head)
+        self.length = 1
+        self.dirnx = 0
+        self.dirny = 1
+        
     # Change direction of head of snake based on input
     def change_direction(self):
         keys = pygame.key.get_pressed()
@@ -161,10 +171,13 @@ def render(surface, snake, pellet):
     snake.render(surface)
     pellet.render(surface)
     pygame.display.update()
+    
 
 def main():
+    pygame.init()
     field_dimensions = BOARD
     win = pygame.display.set_mode(BOARD)
+   
     initial_pos = (250, 250)
     color = (0, 255, 0)
     snake = Snake(initial_pos, 1, 1, 0, color, field_dimensions)
@@ -183,10 +196,22 @@ def main():
             print(snake.head.position, pellet.getPos())
             pellet.destroy()
             snake.grow(1)
+            
+        #Snake dies and game is over for user when snake collides with itself
+        for part in range(len(snake.body)):
+            if snake.body[part].position in list(map(lambda z:z.position,snake.body[part+1:])): # This will check if any of the positions in our body list overlap
+                #font = pygame.font.Font('freesansbold.ttf', 32)
+                #text = font.render("hello", True, (255, 0, 0))
+                #win.blit(text, [WIDTH/2, HEIGHT/2])
+                snake.reset(initial_pos)
+                break
+    
         snake.change_direction()
         snake.move()
         render(win, snake, pellet)
         clock.tick(15)
+        
+        
 
     pygame.quit()
     
