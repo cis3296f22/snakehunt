@@ -17,10 +17,12 @@ A multiplayer snake game. Each player controls a snake. Each snake must avoid co
 ![Snake hunt screenshot](/mockup.png)
 # How to run
 On Windows:
+Download snake-hunt.exe from the dist folder. Your antivirus software and Windows Defender may give you warnings about downloading the executable, but just ignore them. 
 
-Download snake-hunt.exe. Your antivirus software and Windows Defender may give you warnings about downloading the executable, but just ignore them. This executable is found in the dist folder in this Github repository.
+On Mac:
+Download snake-hunt.exe from the snakehunt_mac folder. 
 
-Alternatively, if you so
+Alternatively, if you do not want to download an executable for Windows or Mac, or if you use Linux,
 * Install Python (https://www.python.org/downloads/) (preferably version 3.7 or newer)
 * Install Pygame (https://www.pygame.org/wiki/GettingStarted)
 * Clone this repo
