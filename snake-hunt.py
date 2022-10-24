@@ -90,20 +90,17 @@ class Snake():
             if pos in self.turns:
                 turn = self.turns[pos]
                 part.set_direction(turn[0], turn[1])
-                part.move()
                 if i == len(self.body) - 1:
                     self.turns.pop(pos)
-            else:
-                if part.xdir == -1 and part.position[0] <= 0:
-                    part.position = (self.field_dimension[0] - 25, part.position[1])
-                elif part.xdir == 1 and part.position[0] >= self.field_dimension[0] - 1:
-                    part.position = (0, part.position[1])
-                elif part.ydir == 1 and part.position[1] >= self.field_dimension[1] - 1:
-                    part.position = (part.position[0], 0)
-                elif part.ydir == -1 and part.position[1] <= 0:
-                    part.position = (part.position[0], self.field_dimension[0] - 25)
-                else: 
-                    part.move()
+            part.move()
+            if part.position[0] < 0:
+                part.position = (self.field_dimension[0] - 25, part.position[1])
+            elif part.position[0] > self.field_dimension[0] - 1:
+                part.position = (0, part.position[1])
+            elif part.position[1] > self.field_dimension[1] - 1:
+                part.position = (part.position[0], 0)
+            elif part.position[1] < 0:
+                part.position = (part.position[0], self.field_dimension[0] - 25)
 
     def render(self, surface):
         for part in self.body:
