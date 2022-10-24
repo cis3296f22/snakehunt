@@ -112,22 +112,23 @@ class Snake():
         ydir = previous.ydir
         width = previous.width
         
-        # if the previous part is moving right, append
-        # this part to the left of it with the same direction
-        if xdir == 1 and ydir == 0:
-            self.body.append(BodyPart((previous.position[0]-width,previous.position[1]), xdir, ydir, self.color))
-        # if the previous part is moving left, append
-        # this part to the right of it with the same direction
-        elif xdir == -1 and ydir == 0:
-            self.body.append(BodyPart((previous.position[0]+width,previous.position[1]), xdir, ydir, self.color))
-        # if the previous part is moving up, append
-        # this part to the bottom of it with the same direction
-        elif xdir == 0 and ydir == 1:
-            self.body.append(BodyPart((previous.position[0],previous.position[1]-width), xdir, ydir, self.color))
-        # if the previous part is moving down, append
-        # this part to the top of it with the same direction
-        elif xdir == 0 and ydir == -1:
-            self.body.append(BodyPart((previous.position[0],previous.position[1]+width), xdir, ydir, self.color))
+        for i in range(amount):
+            # if the previous part is moving right, append
+            # this part to the left of it with the same direction
+            if xdir == 1 and ydir == 0:
+                self.body.append(BodyPart((previous.position[0]-(i+1)*width,previous.position[1]), xdir, ydir, self.color))
+            # if the previous part is moving left, append
+            # this part to the right of it with the same direction
+            elif xdir == -1 and ydir == 0:
+                self.body.append(BodyPart((previous.position[0]+(i+1)*width,previous.position[1]), xdir, ydir, self.color))
+            # if the previous part is moving up, append
+            # this part to the bottom of it with the same direction
+            elif xdir == 0 and ydir == 1:
+                self.body.append(BodyPart((previous.position[0],previous.position[1]-(i+1)*width), xdir, ydir, self.color))
+            # if the previous part is moving down, append
+            # this part to the top of it with the same direction
+            elif xdir == 0 and ydir == -1:
+                self.body.append(BodyPart((previous.position[0],previous.position[1]+(i+1)*width), xdir, ydir, self.color))
 
 #pellet object control
 class Pellet():
