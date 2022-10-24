@@ -20,7 +20,16 @@ On Windows:
 
 Download snake-hunt.exe. Your antivirus software and Windows Defender may give you warnings about downloading the executable, but just ignore them. This executable is found in the dist folder in this Github repository.
 
-In the above repo, use a terminal to get into the 'Game' directory, then run the command `python snake_oop.py`, and you should get a Pygame window with a simple working snake game.
+Alternatively, if you so
+* Install Python (https://www.python.org/downloads/) (preferably version 3.7 or newer)
+* Install Pygame (https://www.pygame.org/wiki/GettingStarted)
+* Clone this repo
+* Open a terminal
+* Navigate to the cloned repo's root directory
+* Enter the command `python snake-hunt.py` (or `python3 snake-hunt.py` depending on your Python version)
+
+You now have a working copy of the game!
+
 
 # How to contribute
 Follow this project board to know the latest status of the project: [https://github.com/orgs/cis3296f22/projects/97](https://github.com/orgs/cis3296f22/projects/97)  
