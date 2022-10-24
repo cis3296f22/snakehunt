@@ -98,6 +98,9 @@ class Snake():
     def render(self, surface):
         for part in self.body:
             part.render(surface)
+            
+    def grow(self, amount):
+        self.__init__(self.position, self.length + amount, self.head.xdir, self.head.ydir, self.color, self.field_dimension)
 
 
 #pellet object control
@@ -152,9 +155,9 @@ def main():
         if(snake.head.position == pellet.getPos()):
             print(snake.head.position, pellet.getPos())
             pellet.destroy()
+            snake.grow(1)
         snake.change_direction()
         snake.move()
-
         render(win, snake, pellet)
         clock.tick(15)
 
