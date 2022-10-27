@@ -4,17 +4,16 @@ from tkinter import messagebox
 #import math
 ##from math import floor as flr
 
-WIDTH = 500
-HEIGHT = 500
-BOARD = (WIDTH,HEIGHT)
-CELL = 25
+
+BOARD = (500,500)
+CELL = 10
+SPEED = CELL
 COLS = BOARD[0]/CELL
 ROWS = BOARD[1]/CELL
 
 # A single part of a snake.
 class BodyPart():
-    speed = 25   # Number of pixels that the part moves per frame
-    width = 25
+    width = CELL
     def __init__(self, position, xdir, ydir, color):
         self.position = position
         self.xdir = xdir
@@ -26,28 +25,28 @@ class BodyPart():
         self.ydir = ydir
 
     def move(self):
-        self.position = (self.position[0] + self.speed * self.xdir, self.position[1] + self.speed * self.ydir)
+        self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)
 
     def render(self, surface):
         pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2));
 
 
 class Snake():
-    def __init__(self, position, length, xdir, ydir, color, field_dimension):
+    def __init__(self, position, length, xdir, ydir, field_dimension):
+        self.color = (0, 255, 0)
         self.body = []
         self.turns = {}
         self.position = position
         self.length = length
-        self.color = color
         self.field_dimension = field_dimension
-        self.initialize(position, xdir, ydir, color)
+        self.initialize(position, xdir, ydir)
 
     # Initializes all parts of the snake based on length
-    def initialize(self, position, xdir, ydir, color):
+    def initialize(self, position, xdir, ydir):
         posx = position[0]
         for i in range(self.length):
-            self.body.append(BodyPart((posx, position[1]), xdir, ydir, color))
-            posx -= 25
+            self.body.append(BodyPart((posx, position[1]), xdir, ydir, self.color))
+            posx -= SPEED
         self.head = self.body[0]
 
     # Reset snake so player can play again once they die
@@ -161,27 +160,51 @@ class Pellet():
         pygame.draw.rect(surface, self.color, (xpos, ypos, self.height-2, self.width-2))
     def destroy(self):
         self.position = self.setPos()
+
+class Camera():
+
+    def __init__(self, player, world, window):
+        self.world = world
+        self.target = player
+        self.position = player.head.position
+        self.dimensions = (500, 500)
+        self.window = window
         
 
-def render(surface, snake, pellet):
-    surface.fill((0, 0, 0))
-    snake.render(surface)
-    pellet.render(surface)
-    pygame.display.update()
+    def update(self):
+        self.position = self.target.head.position
+        self.window.blit(self.world, (0,0), area=(self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]))
+    
+        
+
+def render(world, window, camera, snake, pellet):
+    world.fill((0, 0, 0))
+    snake.render(world)
+    pellet.render(world)
+    camera.update()
+    
+    pygame.display.flip()
     
 
 def main():
     pygame.init()
     field_dimensions = BOARD
-    win = pygame.display.set_mode(BOARD)
-   
+    world = pygame.Surface(BOARD)
     initial_pos = (250, 250)
-    color = (0, 255, 0)
-    snake = Snake(initial_pos, 1, 1, 0, color, field_dimensions)
-    pellet = Pellet()
-    clock = pygame.time.Clock()
-    running = True
+    
+    snake = Snake(initial_pos, 1, 1, 0, BOARD)
 
+    camera_dimensions = (500,500)
+    window = pygame.display.set_mode(camera_dimensions)
+    camera = Camera(snake, world, window)
+
+    pellet = Pellet()
+
+    
+
+    clock = pygame.time.Clock()
+    
+    running = True
     while(running):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -205,11 +228,9 @@ def main():
     
         snake.change_direction()
         snake.move()
-        render(win, snake, pellet)
+        render(world, window, camera, snake, pellet)
         clock.tick(15)
         
-        
-
     pygame.quit()
     
 
