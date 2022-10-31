@@ -34,7 +34,7 @@ class BodyPart():
 class Snake():
     def __init__(self, position, length, xdir, ydir, field_dimensions, world_dimensions):
         #(west,north,east,south) points
-        self.bounds = {"west":world_dimensions[0]/4, "north":world_dimensions[1]/4, "east":3*world_dimensions[0]/4+field_dimensions[0], "west":3*world_dimensions[1]/4+field_dimensions[1]}
+        self.bounds = {"west":world_dimensions[0]/4, "north":world_dimensions[1]/4, "east":3*world_dimensions[0]/4+field_dimensions[0], "south":3*world_dimensions[1]/4+field_dimensions[1]}
         self.color = (0, 255, 0)
         self.body = []
         self.turns = {}
@@ -195,6 +195,8 @@ class Camera():
 
     def render(self, window, world):
         self.position = self.target.head.position
+        window.blit(world, (5,5), (self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0]-10, self.dimensions[1]-10))
+
 
 # Generates multiple pellets in random locations such that they do not
 # overlap
@@ -209,7 +211,7 @@ class randomPellets():
     def __init__(self, numPellets, world):
         self.world = world
         self.numPellets = numPellets
-        self.availablePositions = self.setPositions()
+        self.availablePositions = self.setPositions(self.world)
         self.pellets = self.genPellets()
         
     def genPellets(self):
@@ -225,13 +227,12 @@ class randomPellets():
         return(pellets)
     
     # initializes all possible pellet positions, i.e. every cell
-    def setPositions(self):
+    def setPositions(self, world):
         positions = []
         for i in range(flr(ROWS)):
             for j in range(flr(COLS)):
-                positions.append([i*CELL,j*CELL])
+                positions.append([world.get_width()/4 + i*CELL,world.get_width()/4 + j*CELL])
         return(positions)
-        window.blit(world, (5,5), (self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0]-10, self.dimensions[1]-10))
     
     def getPositions(self):
         positions = []
@@ -282,7 +283,7 @@ def main():
     
     camera = Camera(snake, field_dimensions)
         
-    pellets = randomPellets(5,world)
+    pellets = randomPellets(25,world)
 
     clock = pygame.time.Clock()
     
@@ -318,7 +319,7 @@ def main():
     
         snake.change_direction()
         snake.move()
-        render(world, window, snake, pellet, camera)
+        render(world, window, snake, pellets, camera)
         
         clock.tick(60)
         
