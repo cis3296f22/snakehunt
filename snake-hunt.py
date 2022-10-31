@@ -4,7 +4,7 @@ from tkinter import messagebox
 import math
 from math import floor as flr
 
-
+BEYOND_BOARD = (1000, 1000)
 BOARD = (500,500)
 CELL = 10
 SPEED = CELL
@@ -32,13 +32,15 @@ class BodyPart():
 
 
 class Snake():
-    def __init__(self, position, length, xdir, ydir, field_dimension):
+    def __init__(self, position, length, xdir, ydir, field_dimensions, world_dimensions):
+        #(west,north,east,south) points
+        self.bounds = {"west":world_dimensions[0]/4, "north":world_dimensions[1]/4, "east":3*world_dimensions[0]/4+field_dimensions[0], "west":3*world_dimensions[1]/4+field_dimensions[1]}
         self.color = (0, 255, 0)
         self.body = []
         self.turns = {}
         self.position = position
         self.length = length
-        self.field_dimension = field_dimension
+        self.field_dimensions = field_dimensions
         self.initialize(position, xdir, ydir)
 
     # Initializes all parts of the snake based on length
@@ -92,14 +94,28 @@ class Snake():
                 if i == len(self.body) - 1:
                     self.turns.pop(pos)
             part.move()
-            if part.position[0] < 0:
-                part.position = (self.field_dimension[0] - 25, part.position[1])
-            elif part.position[0] > self.field_dimension[0] - 1:
-                part.position = (0, part.position[1])
-            elif part.position[1] > self.field_dimension[1] - 1:
-                part.position = (part.position[0], 0)
-            elif part.position[1] < 0:
-                part.position = (part.position[0], self.field_dimension[0] - 25)
+
+            
+            if part.position[0] < BEYOND_BOARD[0]/4:
+                part.position = (part.position[0]+self.field_dimensions[0], part.position[1])
+            elif part.position[0] > 3*BEYOND_BOARD[0]/4 - 1:
+                part.position = (part.position[0]-self.field_dimensions[0], part.position[1])
+                
+            elif part.position[1] > 3*BEYOND_BOARD[1]/4 - 1:
+                part.position = (part.position[0], part.position[1]-self.field_dimensions[1])
+            elif part.position[1] < BEYOND_BOARD[1]/4:
+                part.position = (part.position[0], part.position[1]+self.field_dimensions[1])
+            '''
+            if part.position[0] < self.bounds['east']:
+                part.position = (self.bounds['west'], part.position[1])
+            elif part.position[0] > self.bounds['west']:
+                part.position = (self.bounds['east'], part.position[1])
+                
+            elif part.position[1] > self.bounds['north']:
+                part.position = (part.position[0], self.bounds['south'])
+            elif part.position[1] < self.bounds["south"]:
+                part.position = (part.position[0], self.bounds["north"])
+                '''
 
     def render(self, surface):
         for part in self.body:
@@ -139,17 +155,19 @@ class Snake():
 #pellet object control
 class Pellet():
 
-    def __init__(self):
+    def __init__(self, world):
+        self.world = world
         self.position = self.setPos()
         self.eaten = False
-        self.color = (255, 0, 0)
+        self.color = (50, 200, 255)
         self.width = CELL
         self.height = CELL
+
         
         #self.image = 
     def setPos(self):
-        xpos = randint(1, COLS-1)*CELL
-        ypos = randint(1,ROWS-1)*CELL
+        xpos = self.world.get_width()/4 + randint(1, COLS-1)*CELL
+        ypos = self.world.get_height()/4 + randint(1,ROWS-1)*CELL
         
         return (xpos, ypos)
     def getPos(self):
@@ -167,17 +185,16 @@ class Pellet():
 
 class Camera():
 
-    def __init__(self, player, world, window):
-        self.world = world
+    def __init__(self, player, dimensions):
+        
         self.target = player
         self.position = player.head.position
-        self.dimensions = (500, 500)
-        self.window = window
+        self.dimensions = dimensions
+ 
         
 
-    def update(self):
+    def render(self, window, world):
         self.position = self.target.head.position
-        self.window.blit(self.world, (0,0), area=(self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]))
 
 # Generates multiple pellets in random locations such that they do not
 # overlap
@@ -189,7 +206,8 @@ class Camera():
 # ratio for 32 bit systems.
 class randomPellets():
 
-    def __init__(self, numPellets):
+    def __init__(self, numPellets, world):
+        self.world = world
         self.numPellets = numPellets
         self.availablePositions = self.setPositions()
         self.pellets = self.genPellets()
@@ -197,7 +215,7 @@ class randomPellets():
     def genPellets(self):
         pellets = []
         for i in range(self.numPellets):
-            pel = Pellet()
+            pel = Pellet(self.world)
             # get a random available position then remove it from the list of 
             # available positions
             pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
@@ -213,6 +231,7 @@ class randomPellets():
             for j in range(flr(COLS)):
                 positions.append([i*CELL,j*CELL])
         return(positions)
+        window.blit(world, (5,5), (self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0]-10, self.dimensions[1]-10))
     
     def getPositions(self):
         positions = []
@@ -225,7 +244,7 @@ class randomPellets():
         self.pellets.remove(pel)
         # get a new position from the list of availble positions and remove it
         pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
-        pel2 = Pellet()
+        pel2 = Pellet(self.world)
         # generate a new pellet
         pel2.setDetPos(pos[0], pos[1])
         # add the deleted pellet's position back to the available positions
@@ -236,11 +255,13 @@ class randomPellets():
         for pellet in self.pellets:
             pellet.render(surface)
 
-def render(world, window, camera, snake, pellets):
-    world.fill((0, 0, 0))
+def render(world, window, snake, pellets, camera):
+    world.fill((20,30,20))
+    pygame.draw.rect(world, (130,100,130),(BEYOND_BOARD[0]/4, BEYOND_BOARD[1]/4, BOARD[0], BOARD[1]))
+
     snake.render(world)
     pellets.render(world)
-    camera.update()
+    camera.render(window, world)
     
     pygame.display.flip()
     
@@ -248,16 +269,20 @@ def render(world, window, camera, snake, pellets):
 def main():
     pygame.init()
     field_dimensions = BOARD
-    world = pygame.Surface(BOARD)
+    world_dimensions = BEYOND_BOARD
+    world = pygame.Surface(world_dimensions)
+    
     initial_pos = (250, 250)
     
-    snake = Snake(initial_pos, 1, 1, 0, BOARD)
-
-    camera_dimensions = (500,500)
-    window = pygame.display.set_mode(camera_dimensions)
-    camera = Camera(snake, world, window)
+    snake = Snake(initial_pos, 1, 1, 0, field_dimensions, world_dimensions)
     
-    pellets = randomPellets(5)
+    
+    
+    window = pygame.display.set_mode(field_dimensions)
+    
+    camera = Camera(snake, field_dimensions)
+        
+    pellets = randomPellets(5,world)
 
     clock = pygame.time.Clock()
     
@@ -279,6 +304,7 @@ def main():
             pellet = pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
             # delete this pellet and generate a new random pellet
             pellets.resetPellet(pellet)
+
             snake.grow(1)
             
         #Snake dies and game is over for user when snake collides with itself
@@ -292,8 +318,9 @@ def main():
     
         snake.change_direction()
         snake.move()
-        render(world, window, camera, snake, pellets)
-        clock.tick(15)
+        render(world, window, snake, pellet, camera)
+        
+        clock.tick(60)
         
     pygame.quit()
     
