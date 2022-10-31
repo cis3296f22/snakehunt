@@ -1,8 +1,8 @@
 import pygame
 from random import randint
 from tkinter import messagebox
-#import math
-##from math import floor as flr
+import math
+from math import floor as flr
 
 BEYOND_BOARD = (1000, 1000)
 BOARD = (500,500)
@@ -178,6 +178,10 @@ class Pellet():
         pygame.draw.rect(surface, self.color, (xpos, ypos, self.height-2, self.width-2))
     def destroy(self):
         self.position = self.setPos()
+        
+    # set a pellet's position to a value passed in
+    def setDetPos(self,xpos,ypos):
+        self.position = [xpos,ypos]
 
 class Camera():
 
@@ -191,16 +195,72 @@ class Camera():
 
     def render(self, window, world):
         self.position = self.target.head.position
+
+# Generates multiple pellets in random locations such that they do not
+# overlap
+#
+# IMPORTANT NOTE
+# For a 32 bit system, the maximum array size in python is 536,870,912
+# elements. Since this implementation is dependent on the board and cell size,
+# this will not work for anything larger than a 23170 by 23170 size board/cell 
+# ratio for 32 bit systems.
+class randomPellets():
+
+    def __init__(self, numPellets, world):
+        self.world = world
+        self.numPellets = numPellets
+        self.availablePositions = self.setPositions()
+        self.pellets = self.genPellets()
+        
+    def genPellets(self):
+        pellets = []
+        for i in range(self.numPellets):
+            pel = Pellet(self.world)
+            # get a random available position then remove it from the list of 
+            # available positions
+            pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
+            # manually set the position of the pellet to the random position
+            pel.setDetPos(pos[0],pos[1])
+            pellets.append(pel)
+        return(pellets)
+    
+    # initializes all possible pellet positions, i.e. every cell
+    def setPositions(self):
+        positions = []
+        for i in range(flr(ROWS)):
+            for j in range(flr(COLS)):
+                positions.append([i*CELL,j*CELL])
+        return(positions)
         window.blit(world, (5,5), (self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0]-10, self.dimensions[1]-10))
     
+    def getPositions(self):
+        positions = []
+        for pellet in self.pellets:
+            positions.append(pellet.position)
+        return(positions)
+    
+    def resetPellet(self,pel):
+        # delete the pellet
+        self.pellets.remove(pel)
+        # get a new position from the list of availble positions and remove it
+        pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
+        pel2 = Pellet(self.world)
+        # generate a new pellet
+        pel2.setDetPos(pos[0], pos[1])
+        # add the deleted pellet's position back to the available positions
+        self.availablePositions.append(pel.position)
+        self.pellets.append(pel2)
         
+    def render(self,surface):
+        for pellet in self.pellets:
+            pellet.render(surface)
 
-def render(world, window, snake, pellet, camera):
+def render(world, window, snake, pellets, camera):
     world.fill((20,30,20))
     pygame.draw.rect(world, (130,100,130),(BEYOND_BOARD[0]/4, BEYOND_BOARD[1]/4, BOARD[0], BOARD[1]))
 
     snake.render(world)
-    pellet.render(world)
+    pellets.render(world)
     camera.render(window, world)
     
     pygame.display.flip()
@@ -221,10 +281,8 @@ def main():
     window = pygame.display.set_mode(field_dimensions)
     
     camera = Camera(snake, field_dimensions)
-    
-    pellet = Pellet(world)
-
-    
+        
+    pellets = randomPellets(5,world)
 
     clock = pygame.time.Clock()
     
@@ -234,10 +292,19 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
+        pos = pellets.getPositions()
+        print([snake.head.position[0],snake.head.position[1]], pos)
+        
+        # if the snake's head is at a pellet, consume the pellet, i.e.
+        # delete it and grow
+        # note this syntax must be used instead of just using head.position
+        # since head.position returns (x,y) which is not a list
+        if([snake.head.position[0],snake.head.position[1]] in pos):
+            # get the pellet that triggered the consumption case
+            pellet = pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
+            # delete this pellet and generate a new random pellet
+            pellets.resetPellet(pellet)
 
-        print(snake.head.position, pellet.getPos())
-        if(snake.head.position == pellet.getPos()):
-            pellet.destroy()
             snake.grow(1)
             
         #Snake dies and game is over for user when snake collides with itself
