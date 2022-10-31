@@ -1,8 +1,8 @@
 import pygame
 from random import randint
 from tkinter import messagebox
-#import math
-##from math import floor as flr
+import math
+from math import floor as flr
 
 
 BOARD = (500,500)
@@ -160,6 +160,8 @@ class Pellet():
         pygame.draw.rect(surface, self.color, (xpos, ypos, self.height-2, self.width-2))
     def destroy(self):
         self.position = self.setPos()
+    def setDetPos(self,xpos,ypos):
+        self.position = [xpos,ypos]
 
 class Camera():
 
@@ -174,13 +176,60 @@ class Camera():
     def update(self):
         self.position = self.target.head.position
         self.window.blit(self.world, (0,0), area=(self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0], self.dimensions[1]))
-    
-        
 
-def render(world, window, camera, snake, pellet):
+# Generates multiple pellets in random locations such that they do not
+# overlap
+#
+# IMPORTANT NOTE
+# For a 32 bit system, the maximum array size in python is 536,870,912
+# elements. Since this implementation is dependent on the board size, this
+# will not work for anything larger than a 23170 by 23170 size board for 
+# 32 bit systems.
+class randomPellets():
+
+    def __init__(self, numPellets):
+        self.numPellets = numPellets
+        self.availablePositions = self.setPositions()
+        self.pellets = self.genPellets()
+        
+    def genPellets(self):
+        pellets = []
+        for i in range(self.numPellets):
+            pel = Pellet()
+            pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
+            pel.setDetPos(pos[0],pos[1])
+            pellets.append(pel)
+        return(pellets)
+            
+    def setPositions(self):
+        positions = []
+        for i in range(flr(ROWS)):
+            for j in range(flr(COLS)):
+                positions.append([i*CELL,j*CELL])
+        return(positions)
+    
+    def getPositions(self):
+        positions = []
+        for pellet in self.pellets:
+            positions.append(pellet.getPos)
+        return(positions)
+    
+    def resetPellet(self,pel):
+        self.pellets.remove(pel)
+        pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
+        pel2 = Pellet()
+        pel2.setDetPos(pos[0], pos[1])
+        self.availablePositions.append(pel.position)
+        self.pellets.append(pel2)
+        
+    def render(self,surface):
+        for pellet in self.pellets:
+            pellet.render(surface)
+
+def render(world, window, camera, snake, pellets):
     world.fill((0, 0, 0))
     snake.render(world)
-    pellet.render(world)
+    pellets.render(world)
     camera.update()
     
     pygame.display.flip()
@@ -197,10 +246,8 @@ def main():
     camera_dimensions = (500,500)
     window = pygame.display.set_mode(camera_dimensions)
     camera = Camera(snake, world, window)
-
-    pellet = Pellet()
-
     
+    pellets = randomPellets(5)
 
     clock = pygame.time.Clock()
     
@@ -210,11 +257,11 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-
-        print(snake.head.position, pellet.getPos())
-        if(snake.head.position == pellet.getPos()):
-            print(snake.head.position, pellet.getPos())
-            pellet.destroy()
+        pos = pellets.getPositions()
+        print(snake.head.position, pos)
+        if(snake.head.position in pos):
+            # print(snake.head.position, pellet.getPos())
+            pellets.resetPellet(pellets(pos.index(snake.head.position)))
             snake.grow(1)
             
         #Snake dies and game is over for user when snake collides with itself
@@ -228,7 +275,7 @@ def main():
     
         snake.change_direction()
         snake.move()
-        render(world, window, camera, snake, pellet)
+        render(world, window, camera, snake, pellets)
         clock.tick(15)
         
     pygame.quit()
