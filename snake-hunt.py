@@ -262,8 +262,8 @@ class randomPellets():
         for i in range(self.numPellets):
             pel = Pellet(self.world)
             # get a random available position then remove it from the list of 
-            # available positions
-            pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
+            # available positions (-1 added to avoid error by popping out of range)
+            pos = self.availablePositions.pop(randint(0,len(self.availablePositions)-1))
             # manually set the position of the pellet to the random position
             pel.setDetPos(pos[0],pos[1])
             pellets.append(pel)
