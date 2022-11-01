@@ -1,8 +1,10 @@
+from tkinter import ttk
 import pygame
 from random import randint
-from tkinter import messagebox
-import math
 from math import floor as flr
+import tkinter
+from tkinter import *
+from tkinter import ttk
 
 BEYOND_BOARD = (1000, 1000)
 BOARD = (500,500)
@@ -10,6 +12,47 @@ CELL = 10
 SPEED = CELL
 COLS = BOARD[0]/CELL
 ROWS = BOARD[1]/CELL
+
+class Player():
+    def __init__(self, name, snake):
+        self.name = name
+        self.snake = snake
+    def set_name(self, name):
+        self.name = name
+
+class PauseMenu:
+    def __init__(self, game, player):
+        self.root = Tk()
+        self.root.geometry('275x85')
+
+        self.game = game
+        self.player = player
+        self.current_name = StringVar()
+        self.current_name.trace_add('write', self.rename)
+        self.populate()
+        self.root.mainloop()
+
+    def rename(self, x, y, z):
+        self.player.name = self.current_name.get()
+
+    def quit(self):
+        self.game.running = False
+        self.root.destroy()
+
+    def populate(self):
+        frame = ttk.Frame(self.root, padding=10)
+        frame.pack()
+
+        naming_frame = ttk.Frame(frame)
+        naming_frame.pack()
+        ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT)
+        naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
+        naming_entry.pack(side=tkinter.LEFT)
+
+        buttons_frame = ttk.Frame(frame)
+        buttons_frame.pack(pady=10)
+        ttk.Button(buttons_frame, text='Play', command=self.root.destroy).pack(side=tkinter.LEFT, padx=3)
+        ttk.Button(buttons_frame, text='Quit', command=self.quit).pack(side=tkinter.LEFT, padx=3)
 
 # A single part of a snake.
 class BodyPart():
@@ -256,28 +299,58 @@ class randomPellets():
         for pellet in self.pellets:
             pellet.render(surface)
 
-def render(world, window, snake, pellets, camera):
+def render(world, window, snake, pellets, camera, players, font):
     world.fill((20,30,20))
     pygame.draw.rect(world, (130,100,130),(BEYOND_BOARD[0]/4, BEYOND_BOARD[1]/4, BOARD[0], BOARD[1]))
 
     snake.render(world)
     pellets.render(world)
     camera.render(window, world)
+    show_leaderboard(players, font, window)
     
     pygame.display.flip()
     
+def show_leaderboard(players, font, win):
+    def takeSnakeSize(element):
+        return element.snake.length
+    list.sort(players, reverse=True, key=takeSnakeSize)
+    topTen = min(10, len(players))
+    top = 8
+    for i in range(topTen):
+        record_string = f"{i + 1}.   {players[i].name}   {players[i].snake.length}"
+        record = font.render(record_string, True, (255, 255, 255))
+        record_rect = record.get_rect()
+        record_rect.topleft = (8, top)
+        win.blit(record, record_rect)
+        top += 11
+
+def pause(win, text, text_rect, player, game):
+    win.fill((0, 0, 0))
+    win.blit(text, text_rect)
+    pygame.display.update()
+    PauseMenu(game, player)
 
 def main():
     pygame.init()
     field_dimensions = BOARD
     world_dimensions = BEYOND_BOARD
     world = pygame.Surface(world_dimensions)
+
+    title_font = pygame.font.Font('freesansbold.ttf', 32)
+    leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
+    text = title_font.render('Snake Hunt', True, (255, 255, 255))
+    text_rect = text.get_rect()
+    text_rect.center = (BOARD[0] // 2, BOARD[1] // 2)
+
+    game = {
+        'playing': True
+    }
     
     initial_pos = (250, 250)
     
     snake = Snake(initial_pos, 1, 1, 0, field_dimensions, world_dimensions)
-    
-    
+    players = []
+    players.append(Player("Anonymous", snake))
     
     window = pygame.display.set_mode(field_dimensions)
     
@@ -287,11 +360,12 @@ def main():
 
     clock = pygame.time.Clock()
     
-    running = True
-    while(running):
+    game['playing'] = True
+    pause(window, text, text_rect, players[0], game)
+    while(game['playing']):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                game['playing'] = False
 
         pos = pellets.getPositions()
         print([snake.head.position[0],snake.head.position[1]], pos)
@@ -319,9 +393,9 @@ def main():
     
         snake.change_direction()
         snake.move()
-        render(world, window, snake, pellets, camera)
+        render(world, window, snake, pellets, camera, players, leaderboard_font)
         
-        clock.tick(60)
+        clock.tick(20)
         
     pygame.quit()
     
