@@ -36,7 +36,7 @@ class PauseMenu:
         self.player.name = self.current_name.get()
 
     def quit(self):
-        self.game.running = False
+        self.game['playing'] = False
         self.root.destroy()
 
     def populate(self):
