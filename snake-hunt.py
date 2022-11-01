@@ -1,8 +1,11 @@
 import tkinter
+from turtle import onkeypress
 import pygame
 from random import randint
 from tkinter import *
 from tkinter import ttk
+#import math
+##from math import floor as flr
 
 WIDTH = 500
 HEIGHT = 500
@@ -15,6 +18,10 @@ class Player():
     def __init__(self, name, snake):
         self.name = name
         self.snake = snake
+        self.highscore = 0
+    def update_highscore(self, score):
+        if(score >= self.highscore):
+            self.highscore = score
     def set_name(self, name):
         self.name = name
 
@@ -169,6 +176,12 @@ class Pellet():
     def destroy(self):
         self.position = self.setPos()
 
+def render(surface, snake, pellet):
+    surface.fill((0, 0, 0))
+    snake.render(surface)
+    pellet.render(surface)
+    pygame.display.update()
+
 class PauseMenu:
     def __init__(self, game, player):
         self.root = Tk()
@@ -209,7 +222,6 @@ class Game:
         self.field_dimensions = BOARD
         self.win = pygame.display.set_mode(BOARD)
         self.title_font = pygame.font.Font('freesansbold.ttf', 32)
-        self.leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
         self.text = self.title_font.render('Snake Hunt', True, (255, 255, 255))
         self.text_rect = self.text.get_rect()
         self.text_rect.center = (BOARD[0] // 2, BOARD[1] // 2)
@@ -224,32 +236,15 @@ class Game:
         self.pellet = Pellet()
         self.clock = pygame.time.Clock()
 
-    def render(self, surface, snake, pellet):
-        surface.fill((0, 0, 0))
-        self.show_leaderboard()
-        snake.render(surface)
-        pellet.render(surface)
-        pygame.display.update()
-    
-    def show_leaderboard(self):
-        def takeSnakeSize(element):
-            return element.snake.length
-        list.sort(self.players, reverse=True, key=takeSnakeSize)
-        topTen = min(10, len(self.players))
-        top = 2
-        for i in range(topTen):
-            record_string = f"{i + 1}.   {self.players[i].name}   {self.players[i].snake.length}"
-            record = self.leaderboard_font.render(record_string, True, (255, 255, 255))
-            record_rect = record.get_rect()
-            record_rect.topleft = (2, top)
-            self.win.blit(record, record_rect)
-            top += 11
-
     def pause(self):
         self.win.fill((0, 0, 0))
         self.win.blit(self.text, self.text_rect)
         pygame.display.update()
         self.pause_menu = PauseMenu(self, self.players[0])
+
+    def init_score(self):
+        for player in self.players:
+            player.highscore = 1
 
     def game_loop(self):
         self.running = True
@@ -279,13 +274,14 @@ class Game:
     
             self.players[0].snake.change_direction()
             self.players[0].snake.move()
-            self.render(self.win, self.players[0].snake, self.pellet)
+            render(self.win, self.players[0].snake, self.pellet)
             self.clock.tick(15)
 
         pygame.quit()
 
 def main():
     game = Game()
+    game.init_score()
     game.game_loop()
 
 if __name__ == "__main__":
