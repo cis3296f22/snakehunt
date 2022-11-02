@@ -1,10 +1,11 @@
-from tkinter import ttk
+
 import pygame
 from random import randint
 from math import floor as flr
 import tkinter
 from tkinter import *
 from tkinter import ttk
+root = Tk()
 
 BEYOND_BOARD = (1000, 1000)
 BOARD = (500,500)
@@ -22,25 +23,25 @@ class Player():
 
 class PauseMenu:
     def __init__(self, game, player):
-        self.root = Tk()
-        self.root.geometry('275x85')
+        #self.root = Tk()
+        root.geometry('275x100')
 
         self.game = game
         self.player = player
         self.current_name = StringVar()
         self.current_name.trace_add('write', self.rename)
         self.populate()
-        self.root.mainloop()
+        root.mainloop()
 
     def rename(self, x, y, z):
         self.player.name = self.current_name.get()
 
     def quit(self):
         self.game['playing'] = False
-        self.root.destroy()
+        root.destroy()
 
     def populate(self):
-        frame = ttk.Frame(self.root, padding=10)
+        frame = ttk.Frame(root, padding=10)
         frame.pack()
 
         naming_frame = ttk.Frame(frame)
@@ -51,7 +52,7 @@ class PauseMenu:
 
         buttons_frame = ttk.Frame(frame)
         buttons_frame.pack(pady=10)
-        ttk.Button(buttons_frame, text='Play', command=self.root.destroy).pack(side=tkinter.LEFT, padx=3)
+        ttk.Button(buttons_frame, text='Play', command=root.destroy).pack(side=tkinter.LEFT, padx=3)
         ttk.Button(buttons_frame, text='Quit', command=self.quit).pack(side=tkinter.LEFT, padx=3)
 
 # A single part of a snake.
@@ -368,7 +369,7 @@ def main():
                 game['playing'] = False
 
         pos = pellets.getPositions()
-        print([snake.head.position[0],snake.head.position[1]], pos)
+        #print([snake.head.position[0],snake.head.position[1]], pos)
         
         # if the snake's head is at a pellet, consume the pellet, i.e.
         # delete it and grow
@@ -397,6 +398,7 @@ def main():
         
         clock.tick(20)
         
+    root.destroy()    
     pygame.quit()
     
 
