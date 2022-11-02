@@ -400,7 +400,7 @@ def main():
         
         clock.tick(20)
         
-     
+
     pygame.quit()
     
 
