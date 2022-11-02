@@ -34,7 +34,7 @@ class PauseMenu:
         self.player.name = self.current_name.get()
 
     def quit(self):
-        self.game['playing'] = False
+        self.game.running = False
         root.destroy()
 
     def populate(self):
@@ -313,7 +313,6 @@ class Game():
         self.title_rect = self.title_text.get_rect()
 
         self.players = []
-
         initial_pos = (250, 250)
         snake = Snake(initial_pos, 1, 1, 0, self.field_dimensions, self.world_dimensions)
         self.players.append(Player('Anonymous', snake))
@@ -323,6 +322,7 @@ class Game():
 
         self.pellets = RandomPellets(25, self.world)
         self.clock = pygame.time.Clock()
+        self.running = False
 
     def render(self):
         self.world.fill((20,30,20))
