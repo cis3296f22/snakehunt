@@ -7,8 +7,8 @@ from tkinter import *
 from tkinter import ttk
 root = Tk()
 
-BEYOND_BOARD = (1000, 1000)
-BOARD = (500,500)
+BEYOND_BOARD = (2000, 2000)
+BOARD = (1000,1000)
 CELL = 10
 SPEED = CELL
 COLS = BOARD[0]/CELL
@@ -23,7 +23,7 @@ class Player():
 
 class PauseMenu:
     def __init__(self, game, player):
-        #self.root = Tk()
+        
         root.geometry('275x100')
 
         self.game = game
@@ -341,7 +341,8 @@ def main():
     leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
     text = title_font.render('Snake Hunt', True, (255, 255, 255))
     text_rect = text.get_rect()
-    text_rect.center = (BOARD[0] // 2, BOARD[1] // 2)
+    camera_dimensions = (500,500)
+    text_rect.center = (camera_dimensions[0] // 2, camera_dimensions[1] // 2)
 
     game = {
         'playing': True
@@ -353,9 +354,9 @@ def main():
     players = []
     players.append(Player("Anonymous", snake))
     
-    window = pygame.display.set_mode(field_dimensions)
+    window = pygame.display.set_mode(camera_dimensions)
     
-    camera = Camera(snake, field_dimensions)
+    camera = Camera(snake, camera_dimensions)
         
     pellets = randomPellets(25,world)
 
@@ -367,6 +368,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game['playing'] = False
+                
 
         pos = pellets.getPositions()
         #print([snake.head.position[0],snake.head.position[1]], pos)
@@ -398,7 +400,7 @@ def main():
         
         clock.tick(20)
         
-    root.destroy()    
+     
     pygame.quit()
     
 
