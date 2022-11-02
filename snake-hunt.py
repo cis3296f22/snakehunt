@@ -398,7 +398,6 @@ def main():
         
         clock.tick(20)
         
-    root.destroy()    
     pygame.quit()
     
 
