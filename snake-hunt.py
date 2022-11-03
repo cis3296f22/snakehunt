@@ -6,8 +6,11 @@ from tkinter import *
 from tkinter import ttk
 root = Tk()
 
-BEYOND_BOARD = (2000, 2000)
-BOARD = (1000,1000)
+BOARD_PAD = 300
+BOARD = (1000, 1000)
+BEYOND_BOARD = (BOARD[0] + BOARD_PAD*2, BOARD[1] + BOARD_PAD*2)
+
+
 CELL = 10
 SPEED = CELL
 COLS = BOARD[0]/CELL
@@ -74,7 +77,7 @@ class BodyPart():
 class Snake():
     def __init__(self, position, length, xdir, ydir, field_dimensions, world_dimensions):
         #(west,north,east,south) points
-        self.bounds = {"west":world_dimensions[0]/4, "north":world_dimensions[1]/4, "east":3*world_dimensions[0]/4+field_dimensions[0], "south":3*world_dimensions[1]/4+field_dimensions[1]}
+        self.bounds = {"west":BOARD_PAD, "north":BOARD_PAD, "east":BOARD_PAD+BOARD[0], "south":BOARD_PAD+BOARD[1]}
         self.color = (0, 255, 0)
         self.body = []
         self.turns = {}
@@ -104,19 +107,24 @@ class Snake():
     # Change direction of head of snake based on input
     def change_direction(self):
         keys = pygame.key.get_pressed()
+        
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and self.head.xdir != 1:
+            print('left')
             self.head.xdir = -1
             self.head.ydir = 0
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
         elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.head.xdir != -1:
+            print('right')
             self.head.xdir = 1
             self.head.ydir = 0
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
         elif (keys[pygame.K_UP] or keys[pygame.K_w]) and self.head.ydir != 1:
+            print('up')
             self.head.xdir = 0
             self.head.ydir = -1
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
         elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and self.head.ydir != -1:
+            print('down')
             self.head.xdir = 0
             self.head.ydir = 1
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
@@ -135,26 +143,19 @@ class Snake():
                     self.turns.pop(pos)
             part.move()
             
-            if part.position[0] < BEYOND_BOARD[0]/4:
-                part.position = (part.position[0]+self.field_dimensions[0], part.position[1])
-            elif part.position[0] > 3*BEYOND_BOARD[0]/4 - 1:
-                part.position = (part.position[0]-self.field_dimensions[0], part.position[1])
-                
-            elif part.position[1] > 3*BEYOND_BOARD[1]/4 - 1:
-                part.position = (part.position[0], part.position[1]-self.field_dimensions[1])
-            elif part.position[1] < BEYOND_BOARD[1]/4:
-                part.position = (part.position[0], part.position[1]+self.field_dimensions[1])
-            '''
-            if part.position[0] < self.bounds['east']:
-                part.position = (self.bounds['west'], part.position[1])
-            elif part.position[0] > self.bounds['west']:
+            
+            if part.position[0] < self.bounds['west']:
                 part.position = (self.bounds['east'], part.position[1])
+            elif part.position[0] > self.bounds['east']:
+                part.position = (self.bounds['west'], part.position[1])
                 
-            elif part.position[1] > self.bounds['north']:
+            elif part.position[1] < self.bounds['north']:
                 part.position = (part.position[0], self.bounds['south'])
-            elif part.position[1] < self.bounds["south"]:
-                part.position = (part.position[0], self.bounds["north"])
-                '''
+            elif part.position[1] > self.bounds['south']:
+                part.position = (part.position[0], self.bounds['north'])
+                
+        
+        print('head pos: ', self.head.position)
 
     def render(self, surface):
         for part in self.body:
@@ -273,7 +274,7 @@ class RandomPellets():
         positions = []
         for i in range(flr(ROWS)):
             for j in range(flr(COLS)):
-                positions.append([world.get_width()/4 + i*CELL,world.get_width()/4 + j*CELL])
+                positions.append([BOARD_PAD + i*CELL,BOARD_PAD + j*CELL])
         return(positions)
     
     def getPositions(self):
@@ -313,7 +314,7 @@ class Game():
         self.title_rect = self.title_text.get_rect()
 
         self.players = []
-        initial_pos = (250, 250)
+        initial_pos = (self.world_dimensions[0]//2, self.world_dimensions[1]//2)
         snake = Snake(initial_pos, 1, 1, 0, self.field_dimensions, self.world_dimensions)
         self.players.append(Player('Anonymous', snake))
 
@@ -326,7 +327,7 @@ class Game():
 
     def render(self):
         self.world.fill((20,30,20))
-        pygame.draw.rect(self.world, (130,100,130),(BEYOND_BOARD[0]/4, BEYOND_BOARD[1]/4, BOARD[0], BOARD[1]))
+        pygame.draw.rect(self.world, (130,100,130),(BOARD_PAD, BOARD_PAD, BOARD[0], BOARD[1]))
 
         self.players[0].snake.render(self.world)
         self.pellets.render(self.world)
