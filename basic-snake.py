@@ -1,8 +1,4 @@
-import pickle
-import socket
-from pygame.time import Clock
-from gamedata import *
-from threading import Thread
+import pygame
 
 class BodyPart():
     speed = 25   # Number of pixels that the part moves per frame
@@ -19,6 +15,9 @@ class BodyPart():
 
     def move(self):
         self.position = (self.position[0] + self.speed * self.xdir, self.position[1] + self.speed * self.ydir)
+
+    def render(self, surface):
+        pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2));
 
 class Snake():
     def __init__(self, position, length, xdir, ydir, color, field_dimension):
@@ -37,15 +36,25 @@ class Snake():
             self.body.append(BodyPart((posx, position[1]), xdir, ydir, color))
             posx -= 25
         self.head = self.body[0]
-
-    def change_direction(self, direction):
-        if direction == None: return
-
-        if self.head.xdir != -direction[0]:
-            self.head.xdir = direction[0]
+        
+    # Change direction of head of snake based on input
+    def change_direction(self):
+        keys = pygame.key.get_pressed()
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and self.head.xdir != 1:
+            self.head.xdir = -1
+            self.head.ydir = 0
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
-        if self.head.ydir != -direction[1]:
-            self.head.ydir = direction[1]
+        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.head.xdir != -1:
+            self.head.xdir = 1
+            self.head.ydir = 0
+            self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
+        elif (keys[pygame.K_UP] or keys[pygame.K_w]) and self.head.ydir != 1:
+            self.head.xdir = 0
+            self.head.ydir = -1
+            self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
+        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and self.head.ydir != -1:
+            self.head.xdir = 0
+            self.head.ydir = 1
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
     
     # Move every part of the snake.
@@ -70,72 +79,38 @@ class Snake():
             elif part.position[1] < 0:
                 part.position = (part.position[0], self.field_dimension[0] - 25)
 
-class Client():
-    def __init__(self, conn, snake):
-        self.conn = conn
-        self.snake = snake
+    def render(self, surface):
+        for part in self.body:
+            part.render(surface)
 
-class Server():
-    def __init__(self):
-        self.clients = []
-        self.host = 'localhost'
-        self.port = 5555
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-    def start(self):
-        try:
-            self.s.bind((self.host, self.port))
-        except socket.error as e:
-            print("Error binding.", e)
-
-        self.s.listen(5)
-        print(f"Server started. Waiting for a connection on {self.port}")
-
-    def listen(self):
-        while True:
-            conn, addr = self.s.accept()
-            print("Connected to:", addr)
-
-            xdir = 1
-            ydir = 0
-            snake = Snake((250, 250), 3, xdir, ydir, (255, 255, 255), (500, 500))
-            client = Client(conn, snake)
-            self.clients.append(client)
-
-            if len(self.clients) == 1:
-                Thread(target=self.game_loop).start()
-
-    def get_game_data(self):
-        snakes = []
-        for client in self.clients:
-            body_parts = []
-            for body_part in client.snake.body:
-                body_parts.append(
-                    BodyPartData(
-                        body_part.position,
-                        body_part.color,
-                        body_part.width
-                    )
-                )
-            snakes.append(body_parts)
-        return GameData(snakes)
-
-    def game_loop(self):
-        clock = Clock()
-        while True:
-            for client in self.clients:
-                direction = pickle.loads(client.conn.recv(2048))
-                client.snake.change_direction(direction)
-                client.snake.move()
-                game_data = self.get_game_data()
-                for cl in self.clients:
-                    cl.conn.send(pickle.dumps(game_data))
-            clock.tick(20)
+def render(win, snake):
+    win.fill((0, 0, 0))
+    snake.render(win)
+    pygame.display.update()
 
 def main():
-    server = Server()
-    server.start()
-    server.listen()
+    pygame.init()
+    field_dimensions = (500, 500)
+    win = pygame.display.set_mode(field_dimensions)
+   
+    initial_pos = (250, 250)
+    color = (0, 255, 0)
+    snake = Snake(initial_pos, 1, 1, 0, color, field_dimensions)
+
+    clock = pygame.time.Clock()
+    running = True
+
+    while(running):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+        snake.change_direction()
+        snake.move()
+        render(win, snake)
+        clock.tick(15)
+    
+    pygame.quit()
 
 if __name__ == '__main__':
     main()
