@@ -1,13 +1,13 @@
-from tkinter import ttk
 import pygame
 from random import randint
 from math import floor as flr
 import tkinter
 from tkinter import *
 from tkinter import ttk
+root = Tk()
 
-BEYOND_BOARD = (1000, 1000)
-BOARD = (500,500)
+BEYOND_BOARD = (2000, 2000)
+BOARD = (1000,1000)
 CELL = 10
 SPEED = CELL
 COLS = BOARD[0]/CELL
@@ -22,25 +22,23 @@ class Player():
 
 class PauseMenu:
     def __init__(self, game, player):
-        self.root = Tk()
-        self.root.geometry('275x85')
-
+        root.geometry('275x100')
         self.game = game
         self.player = player
         self.current_name = StringVar()
         self.current_name.trace_add('write', self.rename)
         self.populate()
-        self.root.mainloop()
+        root.mainloop()
 
     def rename(self, x, y, z):
         self.player.name = self.current_name.get()
 
     def quit(self):
-        self.game['playing'] = False
-        self.root.destroy()
+        self.game.running = False
+        root.destroy()
 
     def populate(self):
-        frame = ttk.Frame(self.root, padding=10)
+        frame = ttk.Frame(root, padding=10)
         frame.pack()
 
         naming_frame = ttk.Frame(frame)
@@ -51,7 +49,7 @@ class PauseMenu:
 
         buttons_frame = ttk.Frame(frame)
         buttons_frame.pack(pady=10)
-        ttk.Button(buttons_frame, text='Play', command=self.root.destroy).pack(side=tkinter.LEFT, padx=3)
+        ttk.Button(buttons_frame, text='Play', command=root.destroy).pack(side=tkinter.LEFT, padx=3)
         ttk.Button(buttons_frame, text='Quit', command=self.quit).pack(side=tkinter.LEFT, padx=3)
 
 # A single part of a snake.
@@ -73,7 +71,6 @@ class BodyPart():
     def render(self, surface):
         pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2));
 
-
 class Snake():
     def __init__(self, position, length, xdir, ydir, field_dimensions, world_dimensions):
         #(west,north,east,south) points
@@ -84,7 +81,7 @@ class Snake():
         self.position = position
         self.length = length
         self.field_dimensions = field_dimensions
-        self.initialize(position, xdir, ydir)
+        self.initialize(self.position, xdir, ydir)
 
     # Initializes all parts of the snake based on length
     def initialize(self, position, xdir, ydir):
@@ -137,7 +134,6 @@ class Snake():
                 if i == len(self.body) - 1:
                     self.turns.pop(pos)
             part.move()
-
             
             if part.position[0] < BEYOND_BOARD[0]/4:
                 part.position = (part.position[0]+self.field_dimensions[0], part.position[1])
@@ -163,13 +159,12 @@ class Snake():
     def render(self, surface):
         for part in self.body:
             part.render(surface)
-    
+
     # Increase length by amount and add the corresponding
     # amount of body parts to the snake
     def grow(self, amount):
         size = self.length
         self.length = size + amount
-        
         previous = self.body[size-1]
         
         # initialize elements from the previous part for readability
@@ -194,10 +189,19 @@ class Snake():
             # this part to the top of it with the same direction
             elif xdir == 0 and ydir == -1:
                 self.body.append(BodyPart((previous.position[0],previous.position[1]+(i+1)*width), xdir, ydir, self.color))
+    
+    def check_body_collision(self):
+        #Snake dies and game is over for user when snake collides with itself
+        for part in range(len(self.body)):
+            if self.body[part].position in list(map(lambda z:z.position,self.body[part+1:])): # This will check if any of the positions in our body list overlap
+                #font = pygame.font.Font('freesansbold.ttf', 32)
+                #text = font.render("hello", True, (255, 0, 0))
+                #win.blit(text, [WIDTH/2, HEIGHT/2])
+                self.reset(self.position)
+                break
 
 #pellet object control
 class Pellet():
-
     def __init__(self, world):
         self.world = world
         self.position = self.setPos()
@@ -205,20 +209,21 @@ class Pellet():
         self.color = (50, 200, 255)
         self.width = CELL
         self.height = CELL
+        #self.image =
 
-        
-        #self.image = 
     def setPos(self):
         xpos = self.world.get_width()/4 + randint(1, COLS-1)*CELL
         ypos = self.world.get_height()/4 + randint(1,ROWS-1)*CELL
-        
         return (xpos, ypos)
+
     def getPos(self):
         return self.position[0], self.position[1]
+
     def render(self, surface):
         xpos, ypos = self.getPos()
         #pygame.draw.rect(surface, self.color, (self.position[0], self.position[1], self.width - 2, self.width - 2))
         pygame.draw.rect(surface, self.color, (xpos, ypos, self.height-2, self.width-2))
+
     def destroy(self):
         self.position = self.setPos()
         
@@ -227,19 +232,14 @@ class Pellet():
         self.position = [xpos,ypos]
 
 class Camera():
-
     def __init__(self, player, dimensions):
-        
         self.target = player
         self.position = player.head.position
         self.dimensions = dimensions
- 
-        
 
     def render(self, window, world):
         self.position = self.target.head.position
         window.blit(world, (5,5), (self.position[0] - self.dimensions[0]/2, self.position[1] - self.dimensions[1]/2, self.dimensions[0]-10, self.dimensions[1]-10))
-
 
 # Generates multiple pellets in random locations such that they do not
 # overlap
@@ -249,8 +249,7 @@ class Camera():
 # elements. Since this implementation is dependent on the board and cell size,
 # this will not work for anything larger than a 23170 by 23170 size board/cell 
 # ratio for 32 bit systems.
-class randomPellets():
-
+class RandomPellets():
     def __init__(self, numPellets, world):
         self.world = world
         self.numPellets = numPellets
@@ -299,106 +298,92 @@ class randomPellets():
         for pellet in self.pellets:
             pellet.render(surface)
 
-def render(world, window, snake, pellets, camera, players, font):
-    world.fill((20,30,20))
-    pygame.draw.rect(world, (130,100,130),(BEYOND_BOARD[0]/4, BEYOND_BOARD[1]/4, BOARD[0], BOARD[1]))
+class Game():
+    def __init__(self):
+        pygame.init()
+        self.field_dimensions = BOARD
+        self.world_dimensions = BEYOND_BOARD
+        self.camera_dimensions = (500, 500)
+        self.win = pygame.display.set_mode(self.camera_dimensions)
+        self.world = pygame.Surface(self.world_dimensions)
 
-    snake.render(world)
-    pellets.render(world)
-    camera.render(window, world)
-    show_leaderboard(players, font, window)
-    
-    pygame.display.flip()
-    
-def show_leaderboard(players, font, win):
-    def takeSnakeSize(element):
-        return element.snake.length
-    list.sort(players, reverse=True, key=takeSnakeSize)
-    topTen = min(10, len(players))
-    top = 8
-    for i in range(topTen):
-        record_string = f"{i + 1}.   {players[i].name}   {players[i].snake.length}"
-        record = font.render(record_string, True, (255, 255, 255))
-        record_rect = record.get_rect()
-        record_rect.topleft = (8, top)
-        win.blit(record, record_rect)
-        top += 11
+        self.title_font = pygame.font.Font('freesansbold.ttf', 32)
+        self.leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
+        self.title_text = self.title_font.render('Snake Hunt', True, (255, 255, 255))
+        self.title_rect = self.title_text.get_rect()
 
-def pause(win, text, text_rect, player, game):
-    win.fill((0, 0, 0))
-    win.blit(text, text_rect)
-    pygame.display.update()
-    PauseMenu(game, player)
+        self.players = []
+        initial_pos = (250, 250)
+        snake = Snake(initial_pos, 1, 1, 0, self.field_dimensions, self.world_dimensions)
+        self.players.append(Player('Anonymous', snake))
+
+        self.camera = Camera(snake, self.camera_dimensions)
+        self.title_rect.center = (self.camera_dimensions[0] // 2, self.camera_dimensions[1] // 2)
+
+        self.pellets = RandomPellets(25, self.world)
+        self.clock = pygame.time.Clock()
+        self.running = False
+
+    def render(self):
+        self.world.fill((20,30,20))
+        pygame.draw.rect(self.world, (130,100,130),(BEYOND_BOARD[0]/4, BEYOND_BOARD[1]/4, BOARD[0], BOARD[1]))
+
+        self.players[0].snake.render(self.world)
+        self.pellets.render(self.world)
+        self.camera.render(self.win, self.world)
+        self.show_leaderboard()
+    
+        pygame.display.flip()
+    
+    def show_leaderboard(self):
+        def takeSnakeSize(element):
+            return element.snake.length
+        list.sort(self.players, reverse=True, key=takeSnakeSize)
+        topTen = min(10, len(self.players))
+        top = 8
+        for i in range(topTen):
+            record_string = f"{i + 1}.   {self.players[i].name}   {self.players[i].snake.length}"
+            record = self.leaderboard_font.render(record_string, True, (255, 255, 255))
+            record_rect = record.get_rect()
+            record_rect.topleft = (8, top)
+            self.win.blit(record, record_rect)
+            top += 11
+
+    def pause(self):
+        self.win.fill((0, 0, 0))
+        self.win.blit(self.title_text, self.title_rect)
+        pygame.display.update()
+        self.pause_menu = PauseMenu(self, self.players[0])
+
+    def game_loop(self):
+        self.running = True
+
+        self.pause()
+        while(self.running):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+            pos = self.pellets.getPositions()
+            snake = self.players[0].snake
+            if([snake.head.position[0], snake.head.position[1]] in pos):
+                pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
+                # delete this pellet and generate a new random pellet
+                self.pellets.resetPellet(pellet)
+                snake.grow(1)
+
+            snake.check_body_collision()
+            snake.change_direction()
+            snake.move()
+
+            self.render()
+            self.clock.tick(15)
+            
+        pygame.quit()
 
 def main():
-    pygame.init()
-    field_dimensions = BOARD
-    world_dimensions = BEYOND_BOARD
-    world = pygame.Surface(world_dimensions)
-
-    title_font = pygame.font.Font('freesansbold.ttf', 32)
-    leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
-    text = title_font.render('Snake Hunt', True, (255, 255, 255))
-    text_rect = text.get_rect()
-    text_rect.center = (BOARD[0] // 2, BOARD[1] // 2)
-
-    game = {
-        'playing': True
-    }
-    
-    initial_pos = (250, 250)
-    
-    snake = Snake(initial_pos, 1, 1, 0, field_dimensions, world_dimensions)
-    players = []
-    players.append(Player("Anonymous", snake))
-    
-    window = pygame.display.set_mode(field_dimensions)
-    
-    camera = Camera(snake, field_dimensions)
-        
-    pellets = randomPellets(25,world)
-
-    clock = pygame.time.Clock()
-    
-    game['playing'] = True
-    pause(window, text, text_rect, players[0], game)
-    while(game['playing']):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game['playing'] = False
-
-        pos = pellets.getPositions()
-        print([snake.head.position[0],snake.head.position[1]], pos)
-        
-        # if the snake's head is at a pellet, consume the pellet, i.e.
-        # delete it and grow
-        # note this syntax must be used instead of just using head.position
-        # since head.position returns (x,y) which is not a list
-        if([snake.head.position[0],snake.head.position[1]] in pos):
-            # get the pellet that triggered the consumption case
-            pellet = pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
-            # delete this pellet and generate a new random pellet
-            pellets.resetPellet(pellet)
-
-            snake.grow(1)
-            
-        #Snake dies and game is over for user when snake collides with itself
-        for part in range(len(snake.body)):
-            if snake.body[part].position in list(map(lambda z:z.position,snake.body[part+1:])): # This will check if any of the positions in our body list overlap
-                #font = pygame.font.Font('freesansbold.ttf', 32)
-                #text = font.render("hello", True, (255, 0, 0))
-                #win.blit(text, [WIDTH/2, HEIGHT/2])
-                snake.reset(initial_pos)
-                break
-    
-        snake.change_direction()
-        snake.move()
-        render(world, window, snake, pellets, camera, players, leaderboard_font)
-        
-        clock.tick(20)
-        
-    pygame.quit()
-    
+    game = Game()
+    game.game_loop()
 
 if __name__ == "__main__":
     main()
