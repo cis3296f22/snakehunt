@@ -41,11 +41,11 @@ class Snake():
     def change_direction(self, direction):
         if direction == None: return
 
-        if self.head.xdir != -direction[0]:
-            self.head.xdir = direction[0]
-            self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
-        if self.head.ydir != -direction[1]:
-            self.head.ydir = direction[1]
+        if self.head.xdir != -direction[0] or self.head.ydir != -direction[1]:
+            if self.head.xdir != -direction[0]:
+                self.head.xdir = direction[0]
+            if self.head.ydir != -direction[1]:
+                self.head.ydir = direction[1]
             self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
     
     # Move every part of the snake.
