@@ -89,6 +89,7 @@ class Server():
             print("Error binding.", e)
 
         self.s.listen(5)
+        Thread(target=self.game_loop).start()
         print(f"Server started. Waiting for a connection on {self.port}")
 
     def listen(self):
@@ -101,9 +102,6 @@ class Server():
             snake = Snake((250, 250), 3, xdir, ydir, (255, 255, 255), (500, 500))
             client = Client(conn, snake)
             self.clients.append(client)
-
-            if len(self.clients) == 1:
-                Thread(target=self.game_loop).start()
 
     def get_game_data(self):
         snakes = []
@@ -124,8 +122,11 @@ class Server():
         clock = Clock()
         while True:
             for client in self.clients:
-                direction = pickle.loads(client.conn.recv(2048))
-                client.snake.change_direction(direction)
+                input = pickle.loads(client.conn.recv(2048))    #input is either False or a direction
+                if input == False:
+                    self.clients.remove(client)
+                    continue
+                client.snake.change_direction(input)
                 client.snake.move()
                 game_data = self.get_game_data()
                 for cl in self.clients:

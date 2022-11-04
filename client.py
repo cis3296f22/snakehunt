@@ -52,10 +52,13 @@ class Game():
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.client.socket.send(pickle.dumps(False))
                     self.running = False
+            if not self.running: break
             self.client.socket.send(pickle.dumps(self.get_direction()))
             game_data = pickle.loads(self.client.socket.recv(2048))
             self.render(game_data)
+        pygame.quit()
 
 def main():
     client = Client()
