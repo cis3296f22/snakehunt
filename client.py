@@ -6,9 +6,11 @@ from gamedata import *
 class Client():
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = 'localhost'
-        self.port = 5555
-        self.addr = (self.server, self.port)
+
+    def input_addr(self):
+        server_ip = input("Enter server IP: ")
+        server_port = input("Enter server port: ")
+        self.addr = (server_ip, int(server_port))
 
     def connect(self):
         try:
@@ -62,6 +64,7 @@ class Game():
 
 def main():
     client = Client()
+    client.input_addr()
     client.connect()
     game = Game(client)
     game.game_loop()

@@ -2,7 +2,7 @@ import pickle
 import socket
 from pygame.time import Clock
 from gamedata import *
-from threading import Thread
+from threading import Thread, Lock
 
 class BodyPart():
     speed = 25   # Number of pixels that the part moves per frame
@@ -74,11 +74,13 @@ class Client():
     def __init__(self, conn, snake):
         self.conn = conn
         self.snake = snake
+        self.received_input = False
+        self.lock = Lock()
 
 class Server():
     def __init__(self):
         self.clients = []
-        self.host = 'localhost'
+        self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -90,7 +92,8 @@ class Server():
 
         self.s.listen(5)
         Thread(target=self.game_loop).start()
-        print(f"Server started. Waiting for a connection on {self.port}")
+        print("Server started.")
+        print(f"Server IP: {self.host} Server Port: {self.port}")
 
     def listen(self):
         while True:
@@ -102,6 +105,17 @@ class Server():
             snake = Snake((250, 250), 3, xdir, ydir, (255, 255, 255), (500, 500))
             client = Client(conn, snake)
             self.clients.append(client)
+            Thread(target=self.get_input, args=(client,)).start()
+
+    def get_input(self, client):
+        while True:
+            input = pickle.loads(client.conn.recv(2048))    #input is either False or a direction
+            if input == False:
+                self.clients.remove(client)
+                break
+            client.snake.change_direction(input)
+            with client.lock:
+                client.received_input = True
 
     def get_game_data(self):
         snakes = []
@@ -122,16 +136,14 @@ class Server():
         clock = Clock()
         while True:
             for client in self.clients:
-                input = pickle.loads(client.conn.recv(2048))    #input is either False or a direction
-                if input == False:
-                    self.clients.remove(client)
-                    continue
-                client.snake.change_direction(input)
                 client.snake.move()
-                game_data = self.get_game_data()
-                for cl in self.clients:
-                    cl.conn.send(pickle.dumps(game_data))
-            clock.tick(20)
+            game_data_bytes = pickle.dumps(self.get_game_data())
+            for client in self.clients:
+                with client.lock:
+                    if client.received_input:
+                        client.conn.send(game_data_bytes)
+                        client.received_input = False
+            clock.tick(15)
 
 def main():
     server = Server()
