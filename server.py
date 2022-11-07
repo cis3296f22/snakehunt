@@ -111,7 +111,7 @@ class Server():
     def get_input(self, client):
         while True:
             input = pickle.loads(client.conn.recv(2048))    #input is either False or a direction
-            if input == False:
+            if input == comm.Signal.QUIT:
                 self.clients.remove(client)
                 break
             client.snake.change_direction(input)

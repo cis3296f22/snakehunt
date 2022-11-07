@@ -55,7 +55,7 @@ class Game():
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.client.socket.send(pickle.dumps(False))
+                    self.client.socket.send(pickle.dumps(comm.Signal.QUIT))
                     self.running = False
             if not self.running: break
             self.client.socket.send(pickle.dumps(self.get_direction()))

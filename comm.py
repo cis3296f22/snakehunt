@@ -1,4 +1,9 @@
+from enum import Enum, auto
+
 MSG_LEN = 8
+
+class Signal(Enum):
+    QUIT = auto()
 
 # Sends the data in 'buffer' to 'socket'
 def send_data(socket, buffer):
