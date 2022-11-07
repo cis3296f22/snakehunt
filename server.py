@@ -71,11 +71,12 @@ class Snake():
             elif part.position[1] < 0:
                 part.position = (part.position[0], self.field_dimension[0] - 25)
 
-class Client():
-    def __init__(self, conn, snake):
-        self.conn = conn
+class Player():
+    def __init__(self, socket, snake):
+        self.socket = socket
         self.snake = snake
         self.received_input = False
+        self.dead = False
         self.lock = Lock()
 
 class Server():
@@ -107,16 +108,16 @@ class Server():
             xdir = 1
             ydir = 0
             snake = Snake((250, 250), 3, xdir, ydir, self.colors[self.color_index], (500, 500))
-            client = Client(conn, snake)
+            client = Player(conn, snake)
             self.clients.append(client)
             self.color_index = (self.color_index + 1) % len(self.colors)
             Thread(target=self.get_input, args=(client,)).start()
 
     def get_input(self, client):
         while True:
-            input_size_as_bytes = comm.receive_data(client.conn, comm.MSG_LEN)
+            input_size_as_bytes = comm.receive_data(client.socket, comm.MSG_LEN)
             input_size = comm.size_as_int(input_size_as_bytes)
-            input = pickle.loads(comm.receive_data(client.conn, input_size))
+            input = pickle.loads(comm.receive_data(client.socket, input_size))
             if input == comm.Signal.QUIT:
                 self.clients.remove(client)
                 break
@@ -141,8 +142,8 @@ class Server():
 
     def send_game_data(self, client, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
-        comm.send_data(client.conn, size)
-        comm.send_data(client.conn, game_data_serialized)
+        comm.send_data(client.socket, size)
+        comm.send_data(client.socket, game_data_serialized)
 
     def game_loop(self):
         clock = Clock()
