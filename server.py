@@ -84,6 +84,9 @@ class Server():
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
+        self.color_index = 0
         
     def start(self):
         try:
@@ -103,9 +106,10 @@ class Server():
 
             xdir = 1
             ydir = 0
-            snake = Snake((250, 250), 3, xdir, ydir, (255, 255, 255), (500, 500))
+            snake = Snake((250, 250), 3, xdir, ydir, self.colors[self.color_index], (500, 500))
             client = Client(conn, snake)
             self.clients.append(client)
+            self.color_index = (self.color_index + 1) % len(self.colors)
             Thread(target=self.get_input, args=(client,)).start()
 
     def get_input(self, client):
