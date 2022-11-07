@@ -53,13 +53,22 @@ class Game():
     def game_loop(self):
         self.running = True
         while self.running:
+            msg = None
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.client.socket.send(pickle.dumps(comm.Signal.QUIT))
+                    msg = pickle.dumps(comm.Signal.QUIT)
                     self.running = False
-            if not self.running: break
-            self.client.socket.send(pickle.dumps(self.get_direction()))
             
+            # Send input or quit signal to server
+            if msg == None:
+                msg = pickle.dumps(self.get_direction())
+            comm.send_data(self.client.socket, comm.size_as_bytes(msg))
+            comm.send_data(self.client.socket, msg)
+
+            # If the player decided to quit, exit the game loop after notifying server
+            if not self.running: break
+            
+            # Receive game data from server, use it to render
             size_as_bytes = comm.receive_data(self.client.socket, comm.MSG_LEN)
             length = comm.size_as_int(size_as_bytes)
             game_data = pickle.loads(comm.receive_data(self.client.socket, length))

@@ -110,7 +110,9 @@ class Server():
 
     def get_input(self, client):
         while True:
-            input = pickle.loads(client.conn.recv(2048))    #input is either False or a direction
+            input_size_as_bytes = comm.receive_data(client.conn, comm.MSG_LEN)
+            input_size = comm.size_as_int(input_size_as_bytes)
+            input = pickle.loads(comm.receive_data(client.conn, input_size))
             if input == comm.Signal.QUIT:
                 self.clients.remove(client)
                 break
