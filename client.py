@@ -2,6 +2,7 @@ import socket
 import pickle
 import pygame
 from gamedata import *
+import comm
 
 class Client():
     def __init__(self):
@@ -58,7 +59,10 @@ class Game():
                     self.running = False
             if not self.running: break
             self.client.socket.send(pickle.dumps(self.get_direction()))
-            game_data = pickle.loads(self.client.socket.recv(2048))
+            
+            size_as_bytes = comm.receive_data(self.client.socket, comm.MSG_LEN)
+            length = comm.size_as_int(size_as_bytes)
+            game_data = pickle.loads(comm.receive_data(self.client.socket, length))
             self.render(game_data)
         pygame.quit()
 

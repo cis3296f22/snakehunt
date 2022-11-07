@@ -3,6 +3,7 @@ import socket
 from pygame.time import Clock
 from gamedata import *
 from threading import Thread, Lock
+import comm
 
 class BodyPart():
     speed = 25   # Number of pixels that the part moves per frame
@@ -132,16 +133,21 @@ class Server():
             snakes.append(body_parts)
         return GameData(snakes)
 
+    def send_game_data(self, client, game_data_serialized):
+        size = comm.size_as_bytes(game_data_serialized)
+        comm.send_data(client.conn, size)
+        comm.send_data(client.conn, game_data_serialized)
+
     def game_loop(self):
         clock = Clock()
         while True:
             for client in self.clients:
                 client.snake.move()
-            game_data_bytes = pickle.dumps(self.get_game_data())
+            game_data_serialized = pickle.dumps(self.get_game_data())
             for client in self.clients:
                 with client.lock:
                     if client.received_input:
-                        client.conn.send(game_data_bytes)
+                        self.send_game_data(client, game_data_serialized)
                         client.received_input = False
             clock.tick(15)
 
