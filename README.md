@@ -17,11 +17,15 @@ A multiplayer snake game. Each player controls a snake. Each snake must avoid co
 ![Snake hunt screenshot](/mockup.png)
 
 # How to run
-On Windows:
-Download snake-hunt.exe from the dist folder. Your antivirus software and Windows Defender may give you warnings about downloading the executable, but just ignore them. 
-
-On Mac:
-Download snake-hunt.exe from the snakehunt_mac folder. 
+On Windows and Mac:
+1. Download server.exe (Windows) or server (Mac) from the latest release, this will now be called the server executable
+2. Download client.exe (Windows) or client (Mac) from the latest release, this will now be called the client executable
+3. Open the server executable. Ignore the warning messages, you can trust us!
+4. A terminal will pop up, note the IP and port number.
+5. Open the client executable, also ignore warning messages.
+6. A terminal will pop up prompting an input for IP, enter the IP found at step 4
+7. Enter port number found at step 4
+8. Repeat 5 - 7 to connect multiple clients
 
 Alternatively, if you do not want to download an executable for Windows or Mac, or if you use Linux,
 
@@ -30,7 +34,9 @@ Alternatively, if you do not want to download an executable for Windows or Mac, 
 * Clone this repo
 * Open a terminal
 * Navigate to the cloned repo's root directory
-* Enter the command `python snake-hunt.py` (or `python3 snake-hunt.py` depending on your Python version)
+* Enter the command `python server.py` (or `python3 server.py` depending on your Python version)
+* Enter the command `python client.py` (or `python3 client.py` depending on your Python version)
+* Follow steps 4-8 from the Windows and Mac instructions above. 
 
 You now have a working copy of the game!
 
@@ -41,10 +47,9 @@ To run the executable, do the following:
 1. Click OK on the error message.
 2. Choose the Apple menu  > System Preferences > Security & Privacy > General.
 3. If the lock at the bottom left is locked , click it to unlock the preference panel. You may need to enter your password.
-3.  Next to the message beginning with "snake-hunt" was blocked, click Allow Anyway.
-4. Now, in your terminal, cd into your Downloads folder (or wherever you downloaded the executable to) and type the command ./snake-hunt. 
-5. It may tell you permission denied: ./snake-hunt. In this case, you must change the permissions of the file by typing chmod 755 snake-hunt. Now you can type ./snake-hunt and it will begin to run.
-6. It takes about 15 seconds to start up. Wait until a window pops up, and now you can play Snake Hunt by using the arrow keys to move!
+3.  Next to the message beginning with "client" or "server" was blocked, click Allow Anyway.
+4. Now, in your terminal, cd into your Downloads folder (or wherever you downloaded the executable to) and type the command ./client and/or ./server. 
+5. It may tell you permission denied: ./client and/or ./server. In this case, you must change the permissions of the file by typing chmod 755 server (or client). Now you can type ./client or ./server and it will begin to run.
 
 # How to contribute
 Follow this project board to know the latest status of the project: [https://github.com/orgs/cis3296f22/projects/97](https://github.com/orgs/cis3296f22/projects/97)  
