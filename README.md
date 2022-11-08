@@ -18,14 +18,14 @@ A multiplayer snake game. Each player controls a snake. Each snake must avoid co
 
 # How to run
 On Windows and Mac:
-1. Download server.exe (Windows) or server (Mac) from the latest release, this will now be called the server executable
-2. Download client.exe (Windows) or client (Mac) from the latest release, this will now be called the client executable
+1. Download `server.exe` (Windows) or `server` (Mac) from the latest release, this will now be called the server executable
+2. Download `client.exe` (Windows) or `client` (Mac) from the latest release, this will now be called the client executable
 3. Open the server executable. Ignore the warning messages, you can trust us!
-4. A terminal will pop up, note the IP and port number.
+4. A terminal will pop up, **note the IP and port number**.
 5. Open the client executable, also ignore warning messages.
 6. A terminal will pop up prompting an input for IP, enter the IP found at step 4
 7. Enter port number found at step 4
-8. Repeat 5 - 7 to connect multiple clients
+8. Repeat 5 - 7 to connect multiple clients (from a single computer, you can open multiple terminals and open the client executable in each terminal)
 
 Alternatively, if you do not want to download an executable for Windows or Mac, or if you use Linux,
 
@@ -41,15 +41,17 @@ Alternatively, if you do not want to download an executable for Windows or Mac, 
 You now have a working copy of the game!
 
 # Troubleshooting on Mac
-When downloading the executable snake-hunt from GitHub, your Mac may give you the error message: “snake-hunt” can't be opened because Apple cannot check it for malicious software. 
+When downloading the executable snake-hunt from GitHub, your Mac may give you the error message: `“snake-hunt” can't be opened because Apple cannot check it for malicious software.` 
 
 To run the executable, do the following:
-1. Click OK on the error message.
-2. Choose the Apple menu  > System Preferences > Security & Privacy > General.
+1. Click `OK` on the error message.
+2. Choose the `Apple menu`  > `System Preferences` > `Security & Privacy` > `General`.
 3. If the lock at the bottom left is locked , click it to unlock the preference panel. You may need to enter your password.
-3.  Next to the message beginning with "client" or "server" was blocked, click Allow Anyway.
-4. Now, in your terminal, cd into your Downloads folder (or wherever you downloaded the executable to) and type the command ./client and/or ./server. 
-5. It may tell you permission denied: ./client and/or ./server. In this case, you must change the permissions of the file by typing chmod 755 server (or client). Now you can type ./client or ./server and it will begin to run.
+3. Next to the message beginning with `"client"` or `"server"` was blocked, click `Allow Anyway`.
+4. Now, in your terminal, cd into your Downloads folder (or wherever you downloaded the executable to) and type the command `./client` and/or `./server`. 
+5. It may tell you `permission denied: ./client` and/or `./server`. In this case, you must change the permissions of the file by typing `chmod 755 server` (or `chmod 755 client`). Now you can type `./client` or `./server` and it will begin to run.
 
 # How to contribute
 Follow this project board to know the latest status of the project: [https://github.com/orgs/cis3296f22/projects/97](https://github.com/orgs/cis3296f22/projects/97)  
+
+
