@@ -84,7 +84,6 @@ class Server():
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.lock = Lock()
 
         self.colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
         self.color_index = 0
@@ -122,10 +121,6 @@ class Server():
                 self.clients.remove(client)
                 break
             client.snake.change_direction(input)
-            game_data_serialized = None
-            with self.lock:
-                game_data_serialized = pickle.dumps(self.get_game_data())
-            self.send_game_data(client, game_data_serialized)
 
     def get_game_data(self):
         snakes = []
@@ -150,10 +145,12 @@ class Server():
     def game_loop(self):
         clock = Clock()
         while True:
-            with self.lock:
-                for client in self.clients:
-                    client.snake.move()
-            clock.tick(15)
+            for client in self.clients:
+                client.snake.move()
+            game_data_serialized = pickle.dumps(self.get_game_data())
+            for client in self.clients:
+                self.send_game_data(client, game_data_serialized)
+            clock.tick(18)
 
 def main():
     server = Server()
