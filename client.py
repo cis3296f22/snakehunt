@@ -31,10 +31,14 @@ class Game():
     def render(self, game_data):
         self.window.fill((0, 0, 0))
         snakes = game_data.snakes
+        pellets = game_data.pellets
         for snake in snakes:
             for body_part in snake:
                 rect = (body_part.position[0], body_part.position[1], body_part.width - 2, body_part.width - 2)
                 pygame.draw.rect(self.window, body_part.color, rect);
+        for pellet in pellets:
+            rect = (pellet.position[0], pellet.position[1], pellet.width - 2, pellet.width - 2)
+            pygame.draw.rect(self.window, pellet.color, rect);
         pygame.display.update()
 
     def get_direction(self):

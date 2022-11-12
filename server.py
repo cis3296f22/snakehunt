@@ -1,77 +1,13 @@
 import pickle
 import socket
 from pygame.time import Clock
+from threading import Thread
+
 from gamedata import *
-from threading import Thread, Lock
 import comm
+from game import *
 
-class BodyPart():
-    speed = 25   # Number of pixels that the part moves per frame
-    width = 25
-    def __init__(self, position, xdir, ydir, color):
-        self.position = position
-        self.xdir = xdir
-        self.ydir = ydir
-        self.color = color
-
-    def set_direction(self, xdir, ydir):
-        self.xdir = xdir
-        self.ydir = ydir
-
-    def move(self):
-        self.position = (self.position[0] + self.speed * self.xdir, self.position[1] + self.speed * self.ydir)
-
-class Snake():
-    def __init__(self, position, length, xdir, ydir, color, field_dimension):
-        self.body = []
-        self.turns = {}
-        self.position = position
-        self.length = length
-        self.color = color
-        self.field_dimension = field_dimension
-        self.initialize(position, xdir, ydir, color)
-
-    # Initializes all parts of the snake based on length
-    def initialize(self, position, xdir, ydir, color):
-        posx = position[0]
-        for i in range(self.length):
-            self.body.append(BodyPart((posx, position[1]), xdir, ydir, color))
-            posx -= 25
-        self.head = self.body[0]
-
-    def change_direction(self, direction):
-        if direction == None: return
-
-        if self.head.xdir != -direction[0] or self.head.ydir != -direction[1]:
-            if self.head.xdir != -direction[0]:
-                self.head.xdir = direction[0]
-            if self.head.ydir != -direction[1]:
-                self.head.ydir = direction[1]
-            self.turns[self.head.position[:]] = [self.head.xdir, self.head.ydir]
-    
-    # Move every part of the snake.
-    # If a part is at a position where a previous turn occurred, set its direction to the
-    # direction of the previous turn.
-    # When the last part passes a turn, the turn is removed from the dictionary.
-    def move(self):
-        for i, part in enumerate(self.body):
-            pos = part.position[:]
-            if pos in self.turns:
-                turn = self.turns[pos]
-                part.set_direction(turn[0], turn[1])
-                if i == len(self.body) - 1:
-                    self.turns.pop(pos)
-            part.move()
-            if part.position[0] < 0:
-                part.position = (self.field_dimension[0] - 25, part.position[1])
-            elif part.position[0] > self.field_dimension[0] - 1:
-                part.position = (0, part.position[1])
-            elif part.position[1] > self.field_dimension[1] - 1:
-                part.position = (part.position[0], 0)
-            elif part.position[1] < 0:
-                part.position = (part.position[0], self.field_dimension[0] - 25)
-
-class Player():
+class Client():
     def __init__(self, socket, snake):
         self.socket = socket
         self.snake = snake
@@ -87,6 +23,7 @@ class Server():
 
         self.colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
         self.color_index = 0
+        self.pellets = RandomPellets(1)
         
     def start(self):
         try:
@@ -106,8 +43,14 @@ class Server():
 
             xdir = 1
             ydir = 0
-            snake = Snake((250, 250), 3, xdir, ydir, self.colors[self.color_index], (500, 500))
-            client = Player(conn, snake)
+            bounds = {
+                'left': 0,
+                'right': 500,
+                'up': 0,
+                'down': 500
+            }
+            snake = Snake((250, 250), 1, xdir, ydir, bounds)
+            client = Client(conn, snake)
             self.clients.append(client)
             self.color_index = (self.color_index + 1) % len(self.colors)
             Thread(target=self.get_input, args=(client,)).start()
@@ -124,6 +67,7 @@ class Server():
 
     def get_game_data(self):
         snakes = []
+        pellets = []
         for client in self.clients:
             body_parts = []
             for body_part in client.snake.body:
@@ -135,7 +79,15 @@ class Server():
                     )
                 )
             snakes.append(body_parts)
-        return GameData(snakes)
+        for pellet in self.pellets.pellets:
+            pellets.append(
+                BodyPartData(
+                    pellet.position,
+                    pellet.color,
+                    pellet.width
+                )
+            )
+        return GameData(snakes, pellets)
 
     def send_game_data(self, client, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
@@ -145,8 +97,15 @@ class Server():
     def game_loop(self):
         clock = Clock()
         while True:
+            pos = self.pellets.getPositions()
             for client in self.clients:
-                client.snake.move()
+                snake = client.snake
+                snake.move()
+                if [snake.head.position[0], snake.head.position[1]] in pos:
+                    pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
+                    self.pellets.resetPellet(pellet)
+                    snake.grow(1)
+                snake.check_body_collision()
             game_data_serialized = pickle.dumps(self.get_game_data())
             for client in self.clients:
                 self.send_game_data(client, game_data_serialized)
