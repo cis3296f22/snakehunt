@@ -71,15 +71,7 @@ class Game():
             top = head_rect[1] + object.position[1] - my_head.position[1]
             rect = (left, top, object.width - 2, object.width - 2)
             pygame.draw.rect(self.window, object.color, rect);
-
-        #snakes.append(game_data.snake)
-        #for snake in snakes:
-        #    for body_part in snake:
-        #        rect = (body_part.position[0], body_part.position[1], body_part.width - 2, body_part.width - 2)
-        #        pygame.draw.rect(self.window, body_part.color, rect);
-        #for pellet in pellets:
-        #    rect = (pellet.position[0], pellet.position[1], pellet.width - 2, pellet.width - 2)
-        #    pygame.draw.rect(self.window, pellet.color, rect);
+            
         pygame.display.update()
 
     def get_direction(self):
