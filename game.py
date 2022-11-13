@@ -1,8 +1,7 @@
-import pygame
 from random import randint
 from math import floor as flr
 
-BOARD = (500,500)
+BOARD = (1000,1000)
 CELL = 10
 SPEED = CELL
 COLS = BOARD[0]/CELL

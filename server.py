@@ -20,6 +20,7 @@ class Server():
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.camera_dimensions = (500, 500)
 
         self.colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
         self.color_index = 0
@@ -45,11 +46,11 @@ class Server():
             ydir = 0
             bounds = {
                 'left': 0,
-                'right': 500,
+                'right': BOARD[0],
                 'up': 0,
-                'down': 500
+                'down': BOARD[1]
             }
-            snake = Snake((250, 250), 1, xdir, ydir, bounds)
+            snake = Snake((250, 250), 5, xdir, ydir, bounds)
             client = Client(conn, snake)
             self.clients.append(client)
             self.color_index = (self.color_index + 1) % len(self.colors)
@@ -65,21 +66,46 @@ class Server():
                 break
             client.snake.change_direction(input)
 
-    def get_game_data(self):
+    def within_camera_bounds(self, camera_target, object_position):
+        camera_left = camera_target[0] - self.camera_dimensions[0] / 2
+        camera_right = camera_target[0] + self.camera_dimensions[0] / 2
+        camera_up = camera_target[1] - self.camera_dimensions[1] / 2
+        camera_down = camera_target[1] + self.camera_dimensions[1] / 2
+
+        if object_position[0] < camera_left:
+            return False
+        elif object_position[0] > camera_right:
+            return False
+        if object_position[1] < camera_up:
+             return False
+        elif object_position[1] > camera_down:
+            return False
+        return True
+
+    def get_snake_data(self, snake, camera_target):
+        body_parts = []
+        for body_part in snake.body:
+            if not self.within_camera_bounds(camera_target, body_part.position):
+                continue
+            body_parts.append(
+                BodyPartData(
+                    body_part.position,
+                    body_part.color,
+                    body_part.width
+                )
+            )
+        return body_parts
+
+    def get_game_data(self, receiver_client):
+        camera_target = receiver_client.snake.head.position
         snakes = []
         pellets = []
         for client in self.clients:
-            body_parts = []
-            for body_part in client.snake.body:
-                body_parts.append(
-                    BodyPartData(
-                        body_part.position,
-                        body_part.color,
-                        body_part.width
-                    )
-                )
-            snakes.append(body_parts)
+            if client == receiver_client: continue
+            snakes.append(self.get_snake_data(client.snake, camera_target))
         for pellet in self.pellets.pellets:
+            if not self.within_camera_bounds(camera_target, pellet.position):
+                continue
             pellets.append(
                 BodyPartData(
                     pellet.position,
@@ -87,7 +113,8 @@ class Server():
                     pellet.width
                 )
             )
-        return GameData(snakes, pellets)
+        snake = self.get_snake_data(receiver_client.snake, camera_target)
+        return GameData(snake, snakes, pellets)
 
     def send_game_data(self, client, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
@@ -106,8 +133,9 @@ class Server():
                     self.pellets.resetPellet(pellet)
                     snake.grow(1)
                 snake.check_body_collision()
-            game_data_serialized = pickle.dumps(self.get_game_data())
+
             for client in self.clients:
+                game_data_serialized = pickle.dumps(self.get_game_data(client))
                 self.send_game_data(client, game_data_serialized)
             clock.tick(18)
 

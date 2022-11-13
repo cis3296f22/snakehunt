@@ -11,6 +11,7 @@ class BodyPartData():
 
 # This class holds every single data item that we need to be able to render game objects in client side
 class GameData():
-    def __init__(self, snakes, pellets):
+    def __init__(self, snake, snakes, pellets):
+        self.snake = snake
         self.snakes = snakes
         self.pellets = pellets

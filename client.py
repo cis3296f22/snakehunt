@@ -24,21 +24,62 @@ class Game():
     def __init__(self, client):
         pygame.init()
 
-        field_dimensions = (500, 500)
+        self.camera = (500, 500)
+        self.board = (1000, 1000)
         self.client = client
-        self.window = pygame.display.set_mode(field_dimensions)
+        self.window = pygame.display.set_mode(self.camera)
+
+    def render_bounds(self, head):
+        if head.position[0] + self.camera[0]/2 > self.board[0]:
+            off_map_width = (head.position[0] + self.camera[0]/2 - self.board[0])
+            off_map_rect = (self.camera[0] - off_map_width, 0, off_map_width, self.camera[1])
+            pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
+        elif head.position[0] - self.camera[0]/2 < 0:
+            off_map_width = -(head.position[0] - self.camera[0]/2)
+            off_map_rect = (0, 0, off_map_width, self.camera[1])
+            pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
+        if head.position[1] + self.camera[1]/2 > self.board[1]:
+            off_map_width = (head.position[1] + self.camera[1]/2 - self.board[1])
+            off_map_rect = (0, self.camera[0] - off_map_width, self.camera[0], off_map_width)
+            pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
+        elif head.position[1] - self.camera[1]/2 < 0:
+            off_map_width = -(head.position[1] - self.camera[1]/2)
+            off_map_rect = (0, 0, self.camera[0], off_map_width)
+            pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
 
     def render(self, game_data):
-        self.window.fill((0, 0, 0))
         snakes = game_data.snakes
         pellets = game_data.pellets
+
+        self.window.fill((0, 0, 0))
+        my_head = game_data.snake[0]
+
+        self.render_bounds(my_head)
+    
+        head_rect = (self.camera[0] / 2, self.camera[1] / 2, my_head.width - 2, my_head.width - 2)
+        pygame.draw.rect(self.window, my_head.color, head_rect)
+
+        game_objects = game_data.snake[1:]
         for snake in snakes:
             for body_part in snake:
-                rect = (body_part.position[0], body_part.position[1], body_part.width - 2, body_part.width - 2)
-                pygame.draw.rect(self.window, body_part.color, rect);
+                game_objects.append(body_part)
         for pellet in pellets:
-            rect = (pellet.position[0], pellet.position[1], pellet.width - 2, pellet.width - 2)
-            pygame.draw.rect(self.window, pellet.color, rect);
+            game_objects.append(pellet)
+        
+        for object in game_objects:
+            left = head_rect[0] + object.position[0] - my_head.position[0]
+            top = head_rect[1] + object.position[1] - my_head.position[1]
+            rect = (left, top, object.width - 2, object.width - 2)
+            pygame.draw.rect(self.window, object.color, rect);
+
+        #snakes.append(game_data.snake)
+        #for snake in snakes:
+        #    for body_part in snake:
+        #        rect = (body_part.position[0], body_part.position[1], body_part.width - 2, body_part.width - 2)
+        #        pygame.draw.rect(self.window, body_part.color, rect);
+        #for pellet in pellets:
+        #    rect = (pellet.position[0], pellet.position[1], pellet.width - 2, pellet.width - 2)
+        #    pygame.draw.rect(self.window, pellet.color, rect);
         pygame.display.update()
 
     def get_direction(self):
