@@ -6,11 +6,13 @@ CELL = 10
 SPEED = CELL
 COLS = BOARD[0]/CELL
 ROWS = BOARD[1]/CELL
+MAX_NAME_LENGTH = 32
 
 class Player():
-    def __init__(self, name, snake):
-        self.name = name
+    def __init__(self, snake, socket):
         self.snake = snake
+        self.socket = socket
+        self.dead = True
     def set_name(self, name):
         self.name = name
 

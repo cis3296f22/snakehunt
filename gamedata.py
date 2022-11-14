@@ -3,7 +3,7 @@
 # It is possible to serialize a BodyPart object, however, since the server handles game logic, 
 # lots of unnecessary data will be sent to the client in that case.
 # 
-class BodyPartData():
+class CellData():
     def __init__(self, position, color, width):
         self.position = position
         self.color = color

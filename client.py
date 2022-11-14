@@ -1,6 +1,12 @@
+# Imports from standard/third-party modules
 import socket
 import pickle
 import pygame
+import tkinter
+from tkinter import *
+from tkinter import ttk
+
+# Imports from local modules
 from gamedata import *
 import comm
 
@@ -16,17 +22,77 @@ class Client():
     def connect(self):
         try:
             self.socket.connect(self.addr)
+            return True
         except:
             print('Connection failed')
-            pass
+            return False
+
+class PauseMenu:
+    def __init__(self, game):
+        self.root = Tk()
+        self.root.geometry('275x125')
+        self.game = game
+        self.current_name = StringVar()
+        self.populate()
+        self.root.mainloop()
+
+    def receive_name_feedback(self):
+        socket = self.game.client.socket
+
+        feedback_size_bytes = comm.receive_data(socket, comm.MSG_LEN)
+        feedback_size = comm.size_as_int(feedback_size_bytes)
+        feedback = pickle.loads(comm.receive_data(socket, feedback_size))
+
+        if feedback == comm.Message.NAME_OK:
+            self.root.destroy()
+        elif feedback == comm.Message.NAME_TOO_LONG:
+            size_bytes = comm.receive_data(socket, comm.MSG_LEN)
+            size = comm.size_as_int(size_bytes)
+            max_name_length = pickle.loads(comm.receive_data(socket, size))
+            self.name_feedback.config(text=f"Max name length is {max_name_length} characters.")
+        elif feedback == comm.Message.NAME_USED:
+            self.name_feedback.config(text=f"Name taken, please select another name.")
+
+    def send_name(self):
+        socket = self.game.client.socket
+
+        name = pickle.dumps(self.current_name.get())
+        size = comm.size_as_bytes(name)
+        comm.send_data(socket, size)
+        comm.send_data(socket, name)
+
+        self.receive_name_feedback()
+
+    def quit(self):
+        self.game.running = False
+        self.root.destroy()
+
+    def populate(self):
+        frame = ttk.Frame(self.root, padding=10)
+        frame.pack()
+
+        naming_frame = ttk.Frame(frame)
+        naming_frame.pack()
+        ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT)
+        naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
+        naming_entry.pack(side=tkinter.LEFT)
+
+        self.name_feedback = ttk.Label(frame, text = "")
+        self.name_feedback.pack(pady=10)
+
+        buttons_frame = ttk.Frame(frame)
+        buttons_frame.pack(pady=5)
+        ttk.Button(buttons_frame, text='Play', command=self.send_name).pack(side=tkinter.LEFT, padx=3)
+        ttk.Button(buttons_frame, text='Quit', command=self.quit).pack(side=tkinter.LEFT, padx=3)
 
 class Game():
     def __init__(self, client):
         pygame.init()
-
         self.camera = (500, 500)
         self.board = (1000, 1000)
         self.client = client
+
+    def start(self):
         self.window = pygame.display.set_mode(self.camera)
 
     def render_bounds(self, head):
@@ -93,7 +159,7 @@ class Game():
             msg = None
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    msg = pickle.dumps(comm.Signal.QUIT)
+                    msg = pickle.dumps(comm.Message.QUIT)
                     self.running = False
             
             # Send input or quit signal to server
@@ -115,8 +181,13 @@ class Game():
 def main():
     client = Client()
     client.input_addr()
-    client.connect()
+    if not client.connect():
+        return
+
     game = Game(client)
+    menu = PauseMenu(game)
+
+    game.start()
     game.game_loop()
 
 if __name__ == "__main__":

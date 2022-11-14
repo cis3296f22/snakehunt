@@ -7,24 +7,20 @@ from gamedata import *
 import comm
 from game import *
 
-class Client():
-    def __init__(self, socket, snake):
-        self.socket = socket
-        self.snake = snake
-        self.received_input = False
-        self.dead = False
-
 class Server():
     def __init__(self):
-        self.clients = []
+        self.players = []
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.camera_dimensions = (500, 500)
-
-        self.colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
-        self.color_index = 0
         self.pellets = RandomPellets(1)
+        self.bounds = {
+            'left': 0,
+            'right': BOARD[0],
+            'up': 0,
+            'down': BOARD[1]
+        }
         
     def start(self):
         try:
@@ -39,32 +35,73 @@ class Server():
 
     def listen(self):
         while True:
-            conn, addr = self.s.accept()
+            socket, addr = self.s.accept()
             print("Connected to:", addr)
 
-            xdir = 1
-            ydir = 0
-            bounds = {
-                'left': 0,
-                'right': BOARD[0],
-                'up': 0,
-                'down': BOARD[1]
-            }
-            snake = Snake((250, 250), 5, xdir, ydir, bounds)
-            client = Client(conn, snake)
-            self.clients.append(client)
-            self.color_index = (self.color_index + 1) % len(self.colors)
-            Thread(target=self.get_input, args=(client,)).start()
+            Thread(target=self.player_handler, args=(socket,)).start()
 
-    def get_input(self, client):
+    def receive_name(self, player):
         while True:
-            input_size_as_bytes = comm.receive_data(client.socket, comm.MSG_LEN)
+            # Receive name input or quit signal
+            input_size_as_bytes = comm.receive_data(player.socket, comm.MSG_LEN)
             input_size = comm.size_as_int(input_size_as_bytes)
-            input = pickle.loads(comm.receive_data(client.socket, input_size))
-            if input == comm.Signal.QUIT:
-                self.clients.remove(client)
+            input = pickle.loads(comm.receive_data(player.socket, input_size))
+
+            # Client quit during name selection
+            if input == comm.Message.QUIT:
+                return False
+
+            name_accepted = False
+
+            # The name is either valid, too long, or already used.
+            response = None
+            if len(input) > MAX_NAME_LENGTH:
+                response = pickle.dumps(comm.Message.NAME_TOO_LONG)
+            else:
+                for pl in self.players:
+                    if pl.name == input:
+                        response = pickle.dumps(comm.Message.NAME_USED)
+                        break
+            if response == None:
+                response = pickle.dumps(comm.Message.NAME_OK)
+                player.name = input
+                name_accepted = True
+
+            # Tell client if name was valid, too long, or already used
+            size_as_bytes = comm.size_as_bytes(response)
+            comm.send_data(player.socket, size_as_bytes)
+            comm.send_data(player.socket, response)
+
+            if name_accepted:
+                return True
+
+            # If the name was too long, send a message to client indicating max allowed length
+            if len(input) > MAX_NAME_LENGTH:
+                max_length = pickle.dumps(MAX_NAME_LENGTH)
+                size_as_bytes = comm.size_as_bytes(max_length)
+                comm.send_data(player.socket, size_as_bytes)
+                comm.send_data(player.socket, max_length)
+
+    def receive_input(self, player):
+        while True:
+            input_size_as_bytes = comm.receive_data(player.socket, comm.MSG_LEN)
+            input_size = comm.size_as_int(input_size_as_bytes)
+            input = pickle.loads(comm.receive_data(player.socket, input_size))
+            if input == comm.Message.QUIT:
+                self.players.remove(player)
                 break
-            client.snake.change_direction(input)
+            player.snake.change_direction(input)
+
+    def player_handler(self, socket):
+        xdir = 1
+        ydir = 0
+        snake = Snake((250, 250), 5, xdir, ydir, self.bounds)
+        player = Player(snake, socket)
+        
+        if not self.receive_name(player): return
+
+        self.players.append(player)
+        self.receive_input(player)
 
     def within_camera_bounds(self, camera_target, object_position):
         camera_left = camera_target[0] - self.camera_dimensions[0] / 2
@@ -88,7 +125,7 @@ class Server():
             if not self.within_camera_bounds(camera_target, body_part.position):
                 continue
             body_parts.append(
-                BodyPartData(
+                CellData(
                     body_part.position,
                     body_part.color,
                     body_part.width
@@ -96,37 +133,37 @@ class Server():
             )
         return body_parts
 
-    def get_game_data(self, receiver_client):
-        camera_target = receiver_client.snake.head.position
+    def get_game_data(self, receiver_player):
+        camera_target = receiver_player.snake.head.position
         snakes = []
         pellets = []
-        for client in self.clients:
-            if client == receiver_client: continue
-            snakes.append(self.get_snake_data(client.snake, camera_target))
+        for player in self.players:
+            if player == receiver_player: continue
+            snakes.append(self.get_snake_data(player.snake, camera_target))
         for pellet in self.pellets.pellets:
             if not self.within_camera_bounds(camera_target, pellet.position):
                 continue
             pellets.append(
-                BodyPartData(
+                CellData(
                     pellet.position,
                     pellet.color,
                     pellet.width
                 )
             )
-        snake = self.get_snake_data(receiver_client.snake, camera_target)
+        snake = self.get_snake_data(receiver_player.snake, camera_target)
         return GameData(snake, snakes, pellets)
 
-    def send_game_data(self, client, game_data_serialized):
+    def send_game_data(self, player, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
-        comm.send_data(client.socket, size)
-        comm.send_data(client.socket, game_data_serialized)
+        comm.send_data(player.socket, size)
+        comm.send_data(player.socket, game_data_serialized)
 
     def game_loop(self):
         clock = Clock()
         while True:
             pos = self.pellets.getPositions()
-            for client in self.clients:
-                snake = client.snake
+            for player in self.players:
+                snake = player.snake
                 snake.move()
                 if [snake.head.position[0], snake.head.position[1]] in pos:
                     pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
@@ -134,9 +171,9 @@ class Server():
                     snake.grow(1)
                 snake.check_body_collision()
 
-            for client in self.clients:
-                game_data_serialized = pickle.dumps(self.get_game_data(client))
-                self.send_game_data(client, game_data_serialized)
+            for player in self.players:
+                game_data_serialized = pickle.dumps(self.get_game_data(player))
+                self.send_game_data(player, game_data_serialized)
             clock.tick(18)
 
 def main():

@@ -2,8 +2,11 @@ from enum import Enum, auto
 
 MSG_LEN = 8
 
-class Signal(Enum):
+class Message(Enum):
     QUIT = auto()
+    NAME_OK = auto()
+    NAME_TOO_LONG = auto()
+    NAME_USED = auto()
 
 # Sends the data in 'buffer' to 'socket'
 def send_data(socket, buffer):
