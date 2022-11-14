@@ -99,9 +99,20 @@ class Game():
         self.board = (1000, 1000)
         self.client = client
         self.running = True
+        self.leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
 
     def start(self):
         self.window = pygame.display.set_mode(self.camera)
+
+    def show_leaderboard(self, leaderboard):
+        top = 8
+        for i, entry in enumerate(leaderboard):
+            record_string = f'{i + 1}.   {entry.name}   {entry.score}'
+            record = self.leaderboard_font.render(record_string, True, (255, 255, 255))
+            record_rect = record.get_rect()
+            record_rect.topleft = (8, top)
+            self.window.blit(record, record_rect)
+            top += 11
 
     def render_bounds(self, head):
         if head.position[0] + self.camera[0]/2 > self.board[0]:
@@ -145,6 +156,8 @@ class Game():
             top = head_rect[1] + object.position[1] - my_head.position[1]
             rect = (left, top, object.width - 2, object.width - 2)
             pygame.draw.rect(self.window, object.color, rect);
+
+        self.show_leaderboard(game_data.leaderboard)
             
         pygame.display.update()
 

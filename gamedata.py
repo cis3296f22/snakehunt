@@ -9,9 +9,15 @@ class CellData():
         self.color = color
         self.width = width
 
+class LeaderboardEntry():
+    def __init__(self, name, score):
+        self.name = name
+        self.score = score
+
 # This class holds every single data item that we need to be able to render game objects in client side
 class GameData():
-    def __init__(self, snake, snakes, pellets):
+    def __init__(self, snake, snakes, pellets, leaderboard):
         self.snake = snake
         self.snakes = snakes
         self.pellets = pellets
+        self.leaderboard = leaderboard

@@ -119,7 +119,15 @@ class Server():
             return False
         return True
 
-    def get_snake_data(self, snake, camera_target):
+    def get_leaderboard(self):
+        leaderboard = []
+        for player in self.players:
+            leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
+        leaderboard.sort(key=lambda x: x.score, reverse=True)
+        if len(leaderboard) > 10: leaderboard = leaderboard[0:10]
+        return leaderboard
+
+    def get_visible_bodyparts(self, snake, camera_target):
         body_parts = []
         for body_part in snake.body:
             if not self.within_camera_bounds(camera_target, body_part.position):
@@ -132,6 +140,27 @@ class Server():
                 )
             )
         return body_parts
+
+    def get_visible_snakes(self, receiver_player, camera_target):
+        snakes = []
+        for player in self.players:
+            if player != receiver_player:
+                snakes.append(self.get_visible_bodyparts(player.snake, camera_target))
+        return snakes
+
+    def get_visible_pellets(self, camera_target):
+        pellets = []
+        for pellet in self.pellets.pellets:
+            if not self.within_camera_bounds(camera_target, pellet.position):
+                continue
+            pellets.append(
+                CellData(
+                    pellet.position,
+                    pellet.color,
+                    pellet.width
+                )
+            )
+        return pellets
 
     def get_game_data(self, receiver_player):
         camera_target = receiver_player.snake.head.position
@@ -171,8 +200,15 @@ class Server():
                     snake.grow(1)
                 snake.check_body_collision()
 
+            leaderboard = self.get_leaderboard()
             for player in self.players:
-                game_data_serialized = pickle.dumps(self.get_game_data(player))
+                camera_target = player.snake.head.position
+                snake = self.get_visible_bodyparts(player.snake, camera_target)
+                snakes = self.get_visible_snakes(player, camera_target)
+                pellets = self.get_visible_pellets(camera_target)
+
+                game_data = GameData(snake, snakes, pellets, leaderboard)
+                game_data_serialized = pickle.dumps(game_data)
                 self.send_game_data(player, game_data_serialized)
             clock.tick(18)
 
