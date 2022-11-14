@@ -14,7 +14,7 @@ class Server():
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.camera_dimensions = (500, 500)
-        self.pellets = RandomPellets(1)
+        self.pellets = RandomPellets(25)
         self.bounds = {
             'left': 0,
             'right': BOARD[0],
@@ -197,7 +197,7 @@ class Server():
                 if [snake.head.position[0], snake.head.position[1]] in pos:
                     pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
                     self.pellets.resetPellet(pellet)
-                    snake.grow(1)
+                    snake.grow(pellet.val, pellet.color)
                 snake.check_body_collision()
 
             leaderboard = self.get_leaderboard()

@@ -36,7 +36,7 @@ class Snake():
     def __init__(self, position, length, xdir, ydir, bounds):
         #(west,north,east,south) points
         self.bounds = bounds
-        self.color = (0, 255, 0)
+        self.color = (255, 255, 200)
         self.body = []
         self.turns = {}
         self.position = position
@@ -97,8 +97,9 @@ class Snake():
 
     # Increase length by amount and add the corresponding
     # amount of body parts to the snake
-    def grow(self, amount):
+    def grow(self, amount, color):
         size = self.length
+        self.color = color
         self.length = size + amount
         previous = self.body[size-1]
         
@@ -134,13 +135,15 @@ class Snake():
 
 #pellet object control
 class Pellet():
-    def __init__(self):
+    def __init__(self, color_val):
         self.position = self.setPos()
         self.eaten = False
-        self.color = (50, 200, 255)
+        self.color = color_val[0]
+        self.val = color_val[1]
         self.width = CELL
         self.height = CELL
 
+    
     def setPos(self):
         xpos = randint(1, COLS-1)*CELL
         ypos = randint(1,ROWS-1)*CELL
@@ -165,15 +168,28 @@ class Pellet():
 # this will not work for anything larger than a 23170 by 23170 size board/cell 
 # ratio for 32 bit systems.
 class RandomPellets():
+    val_1 = ((0,255,0), 1)
+    val_5 = ((0,0,255), 2)
+    val_10 = ((255,0,0), 3)
+
     def __init__(self, numPellets):
         self.numPellets = numPellets
         self.availablePositions = self.setPositions()
         self.pellets = self.genPellets()
+
+    def setColor(self):
+        val = randint(0, 10)
+        if val == 10:
+            return self.val_10
+        elif val > 7:
+            return self.val_5
+        else:
+            return self.val_1
         
     def genPellets(self):
         pellets = []
         for i in range(self.numPellets):
-            pel = Pellet()
+            pel = Pellet(self.setColor())
             # get a random available position then remove it from the list of 
             # available positions (-1 added to avoid error by popping out of range)
             pos = self.availablePositions.pop(randint(0,len(self.availablePositions)-1))
@@ -201,7 +217,8 @@ class RandomPellets():
         self.pellets.remove(pel)
         # get a new position from the list of availble positions and remove it
         pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
-        pel2 = Pellet()
+        color_val = self.setColor()
+        pel2 = Pellet(color_val)
         # generate a new pellet
         pel2.setDetPos(pos[0], pos[1])
         # add the deleted pellet's position back to the available positions
