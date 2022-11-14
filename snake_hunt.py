@@ -294,6 +294,10 @@ class RandomPellets():
         self.availablePositions.append(pel.position)
         self.pellets.append(pel2)
         
+    def addPellet(self,pel):
+        self.pellets.append(pel)
+        self.numPellets = self.numPellets+1
+        
     def render(self,surface):
         for pellet in self.pellets:
             pellet.render(surface)
