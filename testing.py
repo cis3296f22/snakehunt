@@ -97,8 +97,61 @@ class Test(unittest.TestCase):
         test_pellets.resetPellet(p)
         self.assertFalse(pos in  test_pellets.getPositions())
         
-    
+    # tests that setDirection in BodyPart accurately sets direction to the left
+    def test_setDirectionLeft(self):
+        test_snake.body[0].set_direction(-1,0)
+        self.assertEqual([-1,0],[test_snake.body[0].xdir,test_snake.body[0].ydir])
+        
+    # tests that setDirection in BodyPart accurately sets direction to the right
+    def test_setDirectionRight(self):
+        test_snake.body[0].set_direction(1,0)
+        self.assertEqual([1,0],[test_snake.body[0].xdir,test_snake.body[0].ydir])  
+        
+    # tests that setDirection in BodyPart accurately sets direction to up
+    def test_setDirectionUp(self):
+        test_snake.body[0].set_direction(0,1)
+        self.assertEqual([0,1],[test_snake.body[0].xdir,test_snake.body[0].ydir])  
+        
+    # tests that setDirection in BodyPart accurately sets direction to down
+    def test_setDirectionDown(self):
+        test_snake.body[0].set_direction(0,-1)
+        self.assertEqual([0,-1],[test_snake.body[0].xdir,test_snake.body[0].ydir])          
+        
+    # tests that move in BodyPart accurately moves the part to the left
+    def test_moveLeft(self):
+        test_snake.reset(test_snake.position)
+        test_snake.body[0].position = (50,50)
+        test_snake.body[0].set_direction(-1,0)
+        test_snake.body[0].move()
+        self.assertEqual((40,50), test_snake.body[0].position)
+        test_snake.reset(test_snake.position)
 
+    # tests that move in BodyPart accurately moves the part to the right
+    def test_moveRight(self):
+        test_snake.reset(test_snake.position)
+        test_snake.body[0].position = (50,50)
+        test_snake.body[0].set_direction(1,0)
+        test_snake.body[0].move()
+        self.assertEqual((60,50), test_snake.body[0].position)
+        test_snake.reset(test_snake.position)
+
+    # tests that move in BodyPart accurately moves the part down
+    def test_moveDown(self):
+        test_snake.reset(test_snake.position)
+        test_snake.body[0].position = (50,50)
+        test_snake.body[0].set_direction(0,-1)
+        test_snake.body[0].move()
+        self.assertEqual((50,40), test_snake.body[0].position)
+        test_snake.reset(test_snake.position)
+        
+    # tests that move in BodyPart accurately moves the part up
+    def test_moveUp(self):
+        test_snake.reset(test_snake.position)
+        test_snake.body[0].position = (50,50)
+        test_snake.body[0].set_direction(0,1)
+        test_snake.body[0].move()
+        self.assertEqual((50,60), test_snake.body[0].position)
+        test_snake.reset(test_snake.position)
         
 if __name__ == '__main__':
     unittest.main()
