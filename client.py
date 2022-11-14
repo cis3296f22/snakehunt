@@ -101,6 +101,7 @@ class Game():
         self.client = client
         self.running = True
         self.leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
+        
 
     def start(self):
         self.window = pygame.display.set_mode(self.camera)
@@ -133,6 +134,34 @@ class Game():
             off_map_rect = (0, 0, self.camera[0], off_map_width)
             pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
 
+    def drawEyes(self, head, rect):
+        color = (255,0,0)
+        x = rect[0]
+        y = rect[1]
+        w = rect[2] -3
+        h = rect[3] -3 
+        left_eye = right_eye = None
+        if head.direction[0] == 0:  #parallel to y axis
+            if head.direction[1] == 1:  #going down
+                left_eye = (x + w, y + h-3, 2, 4)
+                right_eye = (x + 1, y + h-3, 2, 4)
+                
+            else:                       #going up
+                left_eye = (x + 1 , y + 1, 2, 4)
+                right_eye = (x + w, y + 1, 2, 4)
+                
+        if head.direction[1] == 0:  #parallel to x axis
+            if head.direction[0] == 1:  #going right
+                left_eye = (x + w -2, y + 1, 4, 2)
+                right_eye = (x + w-2, y + h, 4, 2)
+            else:                       #going left
+                left_eye = (x + 1 , y + h, 4, 2)
+                right_eye = (x + 1, y + 1, 4, 2)
+                
+        pygame.draw.rect(self.window, color, left_eye)
+        pygame.draw.rect(self.window, color, right_eye)
+
+
     def render(self, game_data):
         snakes = game_data.snakes
         pellets = game_data.pellets
@@ -144,7 +173,8 @@ class Game():
     
         head_rect = (self.camera[0] / 2, self.camera[1] / 2, my_head.width - 2, my_head.width - 2)
         pygame.draw.rect(self.window, my_head.color, head_rect)
-
+        self.drawEyes(my_head, head_rect)
+        
         game_objects = game_data.snake[1:]
         for snake in snakes:
             for body_part in snake:
@@ -167,11 +197,11 @@ class Game():
         keys = pygame.key.get_pressed()
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]):
             direction = (-1, 0)
-        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]):
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]):
             direction = (1, 0)
-        elif (keys[pygame.K_UP] or keys[pygame.K_w]):
+        if (keys[pygame.K_UP] or keys[pygame.K_w]):
             direction = (0, -1)
-        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]):
+        if (keys[pygame.K_DOWN] or keys[pygame.K_s]):
             direction = (0, 1)
         return direction
 
@@ -184,6 +214,7 @@ class Game():
                     self.running = False
             
             # Send input or quit signal to server
+            
             if msg == None:
                 msg = pickle.dumps(self.get_direction())
             comm.send_data(self.client.socket, comm.size_as_bytes(msg))

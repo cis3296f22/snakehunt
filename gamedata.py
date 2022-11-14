@@ -4,10 +4,11 @@
 # lots of unnecessary data will be sent to the client in that case.
 # 
 class CellData():
-    def __init__(self, position, color, width):
+    def __init__(self, position, color, width, direction=None):
         self.position = position
         self.color = color
         self.width = width
+        self.direction = direction
 
 class LeaderboardEntry():
     def __init__(self, name, score):

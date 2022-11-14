@@ -16,6 +16,8 @@ class Player():
     def set_name(self, name):
         self.name = name
 
+
+
 # A single part of a snake.
 class BodyPart():
     width = CELL
@@ -30,7 +32,8 @@ class BodyPart():
         self.ydir = ydir
 
     def move(self):
-        self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)
+        self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)    
+    
 
 class Snake():
     def __init__(self, position, length, xdir, ydir, bounds):
@@ -85,7 +88,7 @@ class Snake():
                 if i == len(self.body) - 1:
                     self.turns.pop(pos)
             part.move()
-            print(part.position)
+            #print(part.position)
             if part.position[0] < self.bounds['left']:
                 part.position = (self.bounds['right'] - CELL, part.position[1])
             elif part.position[0] > self.bounds['right'] - 1:
@@ -168,9 +171,9 @@ class Pellet():
 # this will not work for anything larger than a 23170 by 23170 size board/cell 
 # ratio for 32 bit systems.
 class RandomPellets():
-    val_1 = ((0,255,0), 1)
-    val_5 = ((0,0,255), 2)
-    val_10 = ((255,0,0), 3)
+    val_1 = ((150,255,150), 1)
+    val_2 = ((150,150,255), 2)
+    val_3 = ((255,150,150), 3)
 
     def __init__(self, numPellets):
         self.numPellets = numPellets
@@ -180,9 +183,9 @@ class RandomPellets():
     def setColor(self):
         val = randint(0, 10)
         if val == 10:
-            return self.val_10
+            return self.val_3
         elif val > 7:
-            return self.val_5
+            return self.val_2
         else:
             return self.val_1
         

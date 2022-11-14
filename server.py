@@ -136,7 +136,8 @@ class Server():
                 CellData(
                     body_part.position,
                     body_part.color,
-                    body_part.width
+                    body_part.width,
+                    direction = (body_part.xdir, body_part.ydir) if body_part == snake.head else None
                 )
             )
         return body_parts
