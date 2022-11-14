@@ -65,6 +65,13 @@ class PauseMenu:
 
     def quit(self):
         self.game.running = False
+
+        socket = self.game.client.socket
+        quit_msg = pickle.dumps(comm.Message.QUIT)
+        size = comm.size_as_bytes(quit_msg)
+        comm.send_data(socket, size)
+        comm.send_data(socket, quit_msg)
+
         self.root.destroy()
 
     def populate(self):
@@ -91,6 +98,7 @@ class Game():
         self.camera = (500, 500)
         self.board = (1000, 1000)
         self.client = client
+        self.running = True
 
     def start(self):
         self.window = pygame.display.set_mode(self.camera)
@@ -154,7 +162,6 @@ class Game():
         return direction
 
     def game_loop(self):
-        self.running = True
         while self.running:
             msg = None
             for event in pygame.event.get():
