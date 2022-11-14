@@ -5,6 +5,7 @@ import pygame
 import tkinter
 from tkinter import *
 from tkinter import ttk
+root = Tk()
 
 # Imports from local modules
 from gamedata import *
@@ -29,12 +30,12 @@ class Client():
 
 class PauseMenu:
     def __init__(self, game):
-        self.root = Tk()
-        self.root.geometry('275x125')
+        #self.root = Tk()
+        root.geometry('275x125')
         self.game = game
         self.current_name = StringVar()
         self.populate()
-        self.root.mainloop()
+        root.mainloop()
 
     def receive_name_feedback(self):
         socket = self.game.client.socket
@@ -44,7 +45,7 @@ class PauseMenu:
         feedback = pickle.loads(comm.receive_data(socket, feedback_size))
 
         if feedback == comm.Message.NAME_OK:
-            self.root.destroy()
+            root.destroy()
         elif feedback == comm.Message.NAME_TOO_LONG:
             size_bytes = comm.receive_data(socket, comm.MSG_LEN)
             size = comm.size_as_int(size_bytes)
@@ -72,10 +73,10 @@ class PauseMenu:
         comm.send_data(socket, size)
         comm.send_data(socket, quit_msg)
 
-        self.root.destroy()
+        root.destroy()
 
     def populate(self):
-        frame = ttk.Frame(self.root, padding=10)
+        frame = ttk.Frame(root, padding=10)
         frame.pack()
 
         naming_frame = ttk.Frame(frame)
