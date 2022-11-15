@@ -216,7 +216,7 @@ class RandomPellets():
         # delete the pellet
         self.pellets.remove(pel)
         # get a new position from the list of availble positions and remove it
-        pos = self.availablePositions.pop(randint(0,len(self.availablePositions)))
+        pos = self.availablePositions.pop(randint(1,len(self.availablePositions)-1))
         color_val = self.setColor()
         pel2 = Pellet(color_val)
         # generate a new pellet
