@@ -1,3 +1,5 @@
 /build
 /design_personal
 /__pycache__
+/dist
+/*.spec

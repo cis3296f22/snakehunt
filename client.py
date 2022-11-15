@@ -2,14 +2,29 @@
 import socket
 import pickle
 import pygame
+import pygame.font
 import tkinter
 from tkinter import *
 from tkinter import ttk
-root = Tk()
+import os
+import sys
 
 # Imports from local modules
 from gamedata import *
 import comm
+
+root = Tk()
+
+# Find the full path of 'relative_path'
+# If we are running the code directly, the current dir joined with 'relative_path' is the full path
+# If we are running the executable, the full path is the temp directory that pyinstaller creates joined with 'relative_path'
+def resource_path(relative_path):
+    try:
+        # This is just a temp directory that pyinstaller uses to store assets (images, font, etc...)
+        base = sys._MEIPASS 
+    except:
+        base = os.path.abspath(".")
+    return os.path.join(base, relative_path)
 
 class Client():
     def __init__(self):
@@ -100,7 +115,7 @@ class Game():
         self.board = (1000, 1000)
         self.client = client
         self.running = True
-        self.leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
+        self.leaderboard_font = pygame.font.Font(resource_path('./fonts/arial_bold.ttf'), 10)
 
     def start(self):
         self.window = pygame.display.set_mode(self.camera)
@@ -113,7 +128,7 @@ class Game():
             record_rect = record.get_rect()
             record_rect.topleft = (8, top)
             self.window.blit(record, record_rect)
-            top += 11
+            top += 13
 
     def render_bounds(self, head):
         if head.position[0] + self.camera[0]/2 > self.board[0]:
@@ -211,5 +226,5 @@ def main():
     game.start()
     game.game_loop()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
