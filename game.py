@@ -1,5 +1,8 @@
+import pickle
 from random import randint
 from math import floor as flr
+from pygame.time import Clock
+from gamedata import *
 
 BOARD = (1000,1000)
 CELL = 10
@@ -85,7 +88,6 @@ class Snake():
                 if i == len(self.body) - 1:
                     self.turns.pop(pos)
             part.move()
-            print(part.position)
             if part.position[0] < self.bounds['left']:
                 part.position = (self.bounds['right'] - CELL, part.position[1])
             elif part.position[0] > self.bounds['right'] - 1:
@@ -132,6 +134,20 @@ class Snake():
             if self.body[part].position in list(map(lambda z:z.position,self.body[part+1:])):
                 self.reset(self.position)
                 break
+
+    def get_visible_bodyparts(self, camera, camera_target):
+        body_parts = []
+        for body_part in self.body:
+            if not camera.within_bounds(body_part.position, camera_target):
+                continue
+            body_parts.append(
+                CellData(
+                    body_part.position,
+                    body_part.color,
+                    body_part.width
+                )
+            )
+        return body_parts
 
 #pellet object control
 class Pellet():
@@ -224,3 +240,102 @@ class RandomPellets():
         # add the deleted pellet's position back to the available positions
         self.availablePositions.append(pel.position)
         self.pellets.append(pel2)
+
+class Camera():
+    def __init__(self, width, height):
+        self.dimensions = (width, height)
+
+    # Check if 'object_pos' is within the bounds of the camera
+    # 'target_pos' is the position of the target of the camera,
+    # that is, the object that the camera is following.
+    # NOTE: this function assumes that the target is meant to
+    # be centered, and does its checking based on that assumption.
+    def within_bounds(self, object_pos, target_pos):
+        camera_left_edge = target_pos[0] - self.dimensions[0] / 2
+        camera_right_edge = target_pos[0] + self.dimensions[0] / 2
+        camera_top_edge = target_pos[1] - self.dimensions[1] / 2
+        camera_bottom_edge = target_pos[1] + self.dimensions[1] / 2
+
+        if object_pos[0] < camera_left_edge:
+            return False
+        elif object_pos[0] > camera_right_edge:
+            return False
+        if object_pos[1] < camera_top_edge:
+             return False
+        elif object_pos[1] > camera_bottom_edge:
+            return False
+        return True
+
+class Game():
+    def __init__(self, server):
+        self.server = server or None
+        self.players = []
+        self.camera = Camera(500, 500)
+        self.pellets = RandomPellets(25)
+        self.bounds = {
+            'left': 0,
+            'right': BOARD[0],
+            'up': 0,
+            'down': BOARD[1]
+        }
+
+    def add_player(self, player):
+        self.players.append(player)
+
+    def remove_player(self, player):
+        self.players.remove(player)
+
+    def get_leaderboard(self):
+        leaderboard = []
+        for player in self.players:
+            leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
+        leaderboard.sort(key=lambda x: x.score, reverse=True)
+        if len(leaderboard) > 10:
+            leaderboard = leaderboard[0:10]
+        return leaderboard
+
+    def get_visible_snakes(self, receiver_player, camera_target):
+        snakes = []
+        for player in self.players:
+            if player != receiver_player:
+                snakes.append(player.snake.get_visible_bodyparts(self.camera, camera_target))
+        return snakes
+
+    def get_visible_pellets(self, camera_target):
+        pellets = []
+        for pellet in self.pellets.pellets:
+            if not self.camera.within_bounds(pellet.position, camera_target):
+                continue
+            pellets.append(
+                CellData(
+                    pellet.position,
+                    pellet.color,
+                    pellet.width
+                )
+            )
+        return pellets
+
+    def game_loop(self):
+        clock = Clock()
+        while True:
+            pos = self.pellets.getPositions()
+            for player in self.players:
+                snake = player.snake
+                snake.move()
+                if [snake.head.position[0], snake.head.position[1]] in pos:
+                    pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
+                    self.pellets.resetPellet(pellet)
+                    snake.grow(pellet.val, pellet.color)
+                snake.check_body_collision()
+
+            leaderboard = self.get_leaderboard()
+            for player in self.players:
+                camera_target = player.snake.head.position
+                snake = player.snake.get_visible_bodyparts(self.camera, camera_target)
+                snakes = self.get_visible_snakes(player, camera_target)
+                pellets = self.get_visible_pellets(camera_target)
+
+                game_data = GameData(snake, snakes, pellets, leaderboard)
+                game_data_serialized = pickle.dumps(game_data)
+                self.server.send_game_data(player, game_data_serialized)
+            clock.tick(18)
