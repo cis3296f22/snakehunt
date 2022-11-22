@@ -17,8 +17,9 @@ class LeaderboardEntry():
 
 # This class holds every single data item that we need to be able to render game objects in client side
 class GameData():
-    def __init__(self, snake, snakes, pellets, leaderboard):
+    def __init__(self, snake, snakes, pellets, leaderboard, sound=None):
         self.snake = snake
         self.snakes = snakes
         self.pellets = pellets
         self.leaderboard = leaderboard
+        self.sound = sound

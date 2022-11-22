@@ -7,7 +7,10 @@ class Message(Enum):
     NAME_OK = auto()
     NAME_TOO_LONG = auto()
     NAME_USED = auto()
-
+    PELLET_EATEN = auto()       #when the player eats a pellet
+    SELF_COLLISION = auto()     #when the player hits self
+    OTHER_COLLISION = auto()    #when the player hits another player
+    
 # Sends the data in 'buffer' to 'socket'
 def send_data(socket, buffer):
     buffer_len = len(buffer)

@@ -1,8 +1,10 @@
 # Imports from standard/third-party modules
+import os
 import socket
 import pickle
 import pygame
 import tkinter
+from threading import Thread
 from tkinter import *
 from tkinter import ttk
 root = Tk()
@@ -94,16 +96,18 @@ class PauseMenu:
         ttk.Button(buttons_frame, text='Quit', command=self.quit).pack(side=tkinter.LEFT, padx=3)
 
 class Game():
-    def __init__(self, client):
+    def __init__(self, client, radio):
         pygame.init()
         self.camera = (500, 500)
         self.board = (1000, 1000)
         self.client = client
         self.running = True
         self.leaderboard_font = pygame.font.Font('freesansbold.ttf', 10)
+        self.radio = radio
         
 
     def start(self):
+        
         self.window = pygame.display.set_mode(self.camera)
 
     def show_leaderboard(self, leaderboard):
@@ -228,15 +232,41 @@ class Game():
             length = comm.size_as_int(size_as_bytes)
             game_data = pickle.loads(comm.receive_data(self.client.socket, length))
             self.render(game_data)
+            if game_data.sound is not None:
+                self.radio.play_sound(game_data.sound)
+            
         pygame.quit()
+class MusicPlayer():
+    def __init__(self, song):
+        pygame.mixer.init()
+        
+        self.pellet_sound = pygame.mixer.Sound("sound/pellet_sound.mp3")
+        self.self_collision = pygame.mixer.Sound("sound/self_collision.mp3")
+##        self.other_collision = pygame.mixer.Sound()
+        Thread(target=self.play_song, args=(song,)).start()
+        
+    def play_song(self, song):
+        pygame.mixer.music.load(song)
+        pygame.mixer.music.play(-1)
+
+    def play_sound(self, sound):
+        if sound == comm.Message.PELLET_EATEN:
+            self.pellet_sound.play()
+        if sound == comm.Message.SELF_COLLISION:
+            self.self_collision.play()
+##        if sound == comm.Message.OTHER_COLLISION:
+##            self.pellet_sound.play()
+    
 
 def main():
+    
     client = Client()
     client.input_addr()
     if not client.connect():
         return
 
-    game = Game(client)
+    radio = MusicPlayer("sound/snake_hunt.mp3")
+    game = Game(client, radio)
     menu = PauseMenu(game)
 
     game.start()

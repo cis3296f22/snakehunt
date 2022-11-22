@@ -134,8 +134,9 @@ class Snake():
         for part in range(len(self.body)):
             if self.body[part].position in list(map(lambda z:z.position,self.body[part+1:])):
                 self.reset(self.position)
-                break
-
+                return True
+        return False
+    
 #pellet object control
 class Pellet():
     def __init__(self, color_val):

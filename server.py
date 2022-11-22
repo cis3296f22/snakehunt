@@ -163,25 +163,25 @@ class Server():
             )
         return pellets
 
-    def get_game_data(self, receiver_player):
-        camera_target = receiver_player.snake.head.position
-        snakes = []
-        pellets = []
-        for player in self.players:
-            if player == receiver_player: continue
-            snakes.append(self.get_snake_data(player.snake, camera_target))
-        for pellet in self.pellets.pellets:
-            if not self.within_camera_bounds(camera_target, pellet.position):
-                continue
-            pellets.append(
-                CellData(
-                    pellet.position,
-                    pellet.color,
-                    pellet.width
-                )
-            )
-        snake = self.get_snake_data(receiver_player.snake, camera_target)
-        return GameData(snake, snakes, pellets)
+##    def get_game_data(self, receiver_player):
+##        camera_target = receiver_player.snake.head.position
+##        snakes = []
+##        pellets = []
+##        for player in self.players:
+##            if player == receiver_player: continue
+##            snakes.append(self.get_snake_data(player.snake, camera_target))
+##        for pellet in self.pellets.pellets:
+##            if not self.within_camera_bounds(camera_target, pellet.position):
+##                continue
+##            pellets.append(
+##                CellData(
+##                    pellet.position,
+##                    pellet.color,
+##                    pellet.width
+##                )
+##            )
+##        snake = self.get_snake_data(receiver_player.snake, camera_target)
+##        return GameData(snake, snakes, pellets)
 
     def send_game_data(self, player, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
@@ -191,15 +191,18 @@ class Server():
     def game_loop(self):
         clock = Clock()
         while True:
+            sound = None
             pos = self.pellets.getPositions()
             for player in self.players:
                 snake = player.snake
                 snake.move()
                 if [snake.head.position[0], snake.head.position[1]] in pos:
+                    sound = comm.Message.PELLET_EATEN
                     pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
                     self.pellets.resetPellet(pellet)
                     snake.grow(pellet.val, pellet.color)
-                snake.check_body_collision()
+                if snake.check_body_collision():
+                    sound= comm.Message.SELF_COLLISION
 
             leaderboard = self.get_leaderboard()
             for player in self.players:
@@ -208,7 +211,7 @@ class Server():
                 snakes = self.get_visible_snakes(player, camera_target)
                 pellets = self.get_visible_pellets(camera_target)
 
-                game_data = GameData(snake, snakes, pellets, leaderboard)
+                game_data = GameData(snake, snakes, pellets, leaderboard, sound)
                 game_data_serialized = pickle.dumps(game_data)
                 self.send_game_data(player, game_data_serialized)
             clock.tick(18)
