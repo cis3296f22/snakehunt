@@ -1,4 +1,5 @@
 import pickle
+import comm
 from random import randint
 from math import floor as flr
 from pygame.time import Clock
