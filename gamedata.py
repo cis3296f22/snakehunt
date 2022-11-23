@@ -1,8 +1,6 @@
-# This class contains the properties needed to render a snake's body part
-# This object is constructed by the server and sent in serialized format to the client
-# It is possible to serialize a BodyPart object, however, since the server handles game logic, 
-# lots of unnecessary data will be sent to the client in that case.
-# 
+# This class contains the properties needed to render a cell
+# A cell is a generic rectangle that can represent anything
+# In this game, it is used for snakes' body parts and food pellets
 class CellData():
     def __init__(self, position, color, width, direction=None):
         self.position = position
