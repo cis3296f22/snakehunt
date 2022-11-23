@@ -4,11 +4,11 @@ import socket
 import pickle
 import pygame
 import pygame.font
+from pygame.locals import *
 import tkinter
 from threading import Thread
 from tkinter import *
 from tkinter import ttk
-import os
 import sys
 
 # Imports from local modules
@@ -122,8 +122,9 @@ class Game():
 
 
     def start(self):
-        
-        self.window = pygame.display.set_mode(self.camera)
+        pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
+        flags = DOUBLEBUF
+        self.window = pygame.display.set_mode(self.camera, flags, 16)
 
     def show_leaderboard(self, leaderboard):
         top = 8
@@ -209,7 +210,7 @@ class Game():
 
         self.show_leaderboard(game_data.leaderboard)
             
-        pygame.display.update()
+        pygame.display.flip()
 
     def get_direction(self):
         direction = None
@@ -225,6 +226,7 @@ class Game():
         return direction
 
     def game_loop(self):
+        
         while self.running:
             msg = None
             for event in pygame.event.get():
@@ -249,6 +251,7 @@ class Game():
             self.render(game_data)
             if game_data.sound is not None:
                 self.radio.play_sound(game_data.sound)
+            
             
         pygame.quit()
 class MusicPlayer():

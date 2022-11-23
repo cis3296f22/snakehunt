@@ -7,7 +7,7 @@ from gamedata import *
 
 BOARD = (1000,1000)
 CELL = 10
-SPEED = CELL
+SPEED = 10
 COLS = BOARD[0]/CELL
 ROWS = BOARD[1]/CELL
 MAX_NAME_LENGTH = 32
