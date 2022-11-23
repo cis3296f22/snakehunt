@@ -192,7 +192,7 @@ class Game():
     
         head_rect = (self.camera[0] / 2, self.camera[1] / 2, my_head.width - 2, my_head.width - 2)
         pygame.draw.rect(self.window, my_head.color, head_rect)
-        #self.drawEyes(my_head, head_rect)
+        self.drawEyes(my_head, head_rect)
         
         game_objects = game_data.snake[1:]
         for snake in snakes:
