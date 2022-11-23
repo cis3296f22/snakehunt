@@ -1,6 +1,5 @@
 import pickle
 import socket
-from pygame.time import Clock
 from threading import Thread
 
 from gamedata import *
@@ -9,18 +8,10 @@ from game import *
 
 class Server():
     def __init__(self):
-        self.players = []
+        self.game = Game(self)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.camera_dimensions = (500, 500)
-        self.pellets = RandomPellets(25)
-        self.bounds = {
-            'left': 0,
-            'right': BOARD[0],
-            'up': 0,
-            'down': BOARD[1]
-        }
         
     def start(self):
         try:
@@ -29,7 +20,7 @@ class Server():
             print("Error binding.", e)
 
         self.s.listen(5)
-        Thread(target=self.game_loop).start()
+        Thread(target=self.game.game_loop).start()
         print("Server started.")
         print(f"Server IP: {self.host} Server Port: {self.port}")
 
@@ -58,7 +49,7 @@ class Server():
             if len(input) > MAX_NAME_LENGTH:
                 response = pickle.dumps(comm.Message.NAME_TOO_LONG)
             else:
-                for pl in self.players:
+                for pl in self.game.players:
                     if pl.name == input:
                         response = pickle.dumps(comm.Message.NAME_USED)
                         break
@@ -88,129 +79,25 @@ class Server():
             input_size = comm.size_as_int(input_size_as_bytes)
             input = pickle.loads(comm.receive_data(player.socket, input_size))
             if input == comm.Message.QUIT:
-                self.players.remove(player)
+                self.game.remove_player(player)
                 break
             player.snake.change_direction(input)
 
     def player_handler(self, socket):
         xdir = 1
         ydir = 0
-        snake = Snake((250, 250), 5, xdir, ydir, self.bounds)
+        snake = Snake((250, 250), 5, xdir, ydir, self.game.bounds)
         player = Player(snake, socket)
         
         if not self.receive_name(player): return
 
-        self.players.append(player)
+        self.game.add_player(player)
         self.receive_input(player)
-
-    def within_camera_bounds(self, camera_target, object_position):
-        camera_left = camera_target[0] - self.camera_dimensions[0] / 2
-        camera_right = camera_target[0] + self.camera_dimensions[0] / 2
-        camera_up = camera_target[1] - self.camera_dimensions[1] / 2
-        camera_down = camera_target[1] + self.camera_dimensions[1] / 2
-
-        if object_position[0] < camera_left:
-            return False
-        elif object_position[0] > camera_right:
-            return False
-        if object_position[1] < camera_up:
-             return False
-        elif object_position[1] > camera_down:
-            return False
-        return True
-
-    def get_leaderboard(self):
-        leaderboard = []
-        for player in self.players:
-            leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
-        leaderboard.sort(key=lambda x: x.score, reverse=True)
-        if len(leaderboard) > 10: leaderboard = leaderboard[0:10]
-        return leaderboard
-
-    def get_visible_bodyparts(self, snake, camera_target):
-        body_parts = []
-        for body_part in snake.body:
-            if not self.within_camera_bounds(camera_target, body_part.position):
-                continue
-            body_parts.append(
-                CellData(
-                    body_part.position,
-                    body_part.color,
-                    body_part.width
-                )
-            )
-        return body_parts
-
-    def get_visible_snakes(self, receiver_player, camera_target):
-        snakes = []
-        for player in self.players:
-            if player != receiver_player:
-                snakes.append(self.get_visible_bodyparts(player.snake, camera_target))
-        return snakes
-
-    def get_visible_pellets(self, camera_target):
-        pellets = []
-        for pellet in self.pellets.pellets:
-            if not self.within_camera_bounds(camera_target, pellet.position):
-                continue
-            pellets.append(
-                CellData(
-                    pellet.position,
-                    pellet.color,
-                    pellet.width
-                )
-            )
-        return pellets
-
-    def get_game_data(self, receiver_player):
-        camera_target = receiver_player.snake.head.position
-        snakes = []
-        pellets = []
-        for player in self.players:
-            if player == receiver_player: continue
-            snakes.append(self.get_snake_data(player.snake, camera_target))
-        for pellet in self.pellets.pellets:
-            if not self.within_camera_bounds(camera_target, pellet.position):
-                continue
-            pellets.append(
-                CellData(
-                    pellet.position,
-                    pellet.color,
-                    pellet.width
-                )
-            )
-        snake = self.get_snake_data(receiver_player.snake, camera_target)
-        return GameData(snake, snakes, pellets)
 
     def send_game_data(self, player, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
         comm.send_data(player.socket, size)
         comm.send_data(player.socket, game_data_serialized)
-
-    def game_loop(self):
-        clock = Clock()
-        while True:
-            pos = self.pellets.getPositions()
-            for player in self.players:
-                snake = player.snake
-                snake.move()
-                if [snake.head.position[0], snake.head.position[1]] in pos:
-                    pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
-                    self.pellets.resetPellet(pellet)
-                    snake.grow(pellet.val, pellet.color)
-                snake.check_body_collision()
-
-            leaderboard = self.get_leaderboard()
-            for player in self.players:
-                camera_target = player.snake.head.position
-                snake = self.get_visible_bodyparts(player.snake, camera_target)
-                snakes = self.get_visible_snakes(player, camera_target)
-                pellets = self.get_visible_pellets(camera_target)
-
-                game_data = GameData(snake, snakes, pellets, leaderboard)
-                game_data_serialized = pickle.dumps(game_data)
-                self.send_game_data(player, game_data_serialized)
-            clock.tick(18)
 
 def main():
     server = Server()
