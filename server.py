@@ -95,7 +95,8 @@ class Server():
     def player_handler(self, socket):
         xdir = 1
         ydir = 0
-        snake = Snake((250, 250), 5, xdir, ydir, self.game.bounds)
+        position = self.game.get_random_position()
+        snake = Snake(position, 1, xdir, ydir, self.game.bounds)
         player = Player(snake, socket)
         
         if not self.receive_name(player): return
