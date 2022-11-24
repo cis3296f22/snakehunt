@@ -56,14 +56,14 @@ class PauseMenu:
         socket = self.game.client.socket
 
         feedback_size_bytes = comm.receive_data(socket, comm.MSG_LEN)
-        feedback_size = comm.size_as_int(feedback_size_bytes)
+        feedback_size = comm.to_int(feedback_size_bytes)
         feedback = pickle.loads(comm.receive_data(socket, feedback_size))
 
         if feedback == comm.Message.NAME_OK:
             root.destroy()
         elif feedback == comm.Message.NAME_TOO_LONG:
             size_bytes = comm.receive_data(socket, comm.MSG_LEN)
-            size = comm.size_as_int(size_bytes)
+            size = comm.to_int(size_bytes)
             max_name_length = pickle.loads(comm.receive_data(socket, size))
             self.name_feedback.config(text=f"Max name length is {max_name_length} characters.")
         elif feedback == comm.Message.NAME_USED:
@@ -203,15 +203,24 @@ class Game():
                 msg = pickle.dumps(self.get_direction())
             comm.send_data(self.client.socket, comm.size_as_bytes(msg))
             comm.send_data(self.client.socket, msg)
-
-            # If the player decided to quit, exit the game loop after notifying server
-            if not self.running: break
             
             # Receive game data from server, use it to render
             size_as_bytes = comm.receive_data(self.client.socket, comm.MSG_LEN)
-            length = comm.size_as_int(size_as_bytes)
+            length = comm.to_int(size_as_bytes)
             game_data = pickle.loads(comm.receive_data(self.client.socket, length))
+
+            if game_data == comm.Message.SERVER_SHUTDOWN:
+                print("Server shutting down")
+                self.running = False
+
+            # If the player decided to quit, exit the game loop after notifying server
+            if not self.running:
+                self.client.socket.shutdown(socket.SHUT_RDWR)
+                self.client.socket.close()
+                break
+
             self.render(game_data)
+            
         pygame.quit()
 
 def main():

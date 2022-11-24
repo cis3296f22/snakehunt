@@ -7,6 +7,7 @@ class Message(Enum):
     NAME_OK = auto()
     NAME_TOO_LONG = auto()
     NAME_USED = auto()
+    SERVER_SHUTDOWN = auto()
 
 # Sends the data in 'buffer' to 'socket'
 def send_data(socket, buffer):
@@ -39,5 +40,5 @@ def size_as_bytes(buffer):
     return size.encode()
 
 # 'buffer' is expected to be an array of bytes that can be decoded to a numeric string
-def size_as_int(buffer):
+def to_int(buffer):
     return int(buffer.decode())

@@ -272,6 +272,7 @@ class Game():
         self.players = []
         self.camera = Camera(500, 500)
         self.pellets = RandomPellets(25)
+        self.running = True
         self.bounds = {
             'left': 0,
             'right': BOARD[0],
@@ -317,7 +318,7 @@ class Game():
 
     def game_loop(self):
         clock = Clock()
-        while True:
+        while self.running:
             pos = self.pellets.getPositions()
             for player in self.players:
                 snake = player.snake
