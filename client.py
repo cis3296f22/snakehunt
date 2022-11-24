@@ -203,6 +203,10 @@ class Game():
                 msg = pickle.dumps(self.get_direction())
             comm.send_data(self.client.socket, comm.size_as_bytes(msg))
             comm.send_data(self.client.socket, msg)
+
+            # If the player decided to quit, exit the game loop after notifying server
+            if not self.running:
+                break
             
             # Receive game data from server, use it to render
             size_as_bytes = comm.receive_data(self.client.socket, comm.MSG_LEN)
@@ -211,16 +215,12 @@ class Game():
 
             if game_data == comm.Message.SERVER_SHUTDOWN:
                 print("Server shutting down")
-                self.running = False
-
-            # If the player decided to quit, exit the game loop after notifying server
-            if not self.running:
-                self.client.socket.shutdown(socket.SHUT_RDWR)
-                self.client.socket.close()
                 break
 
             self.render(game_data)
             
+        self.client.socket.shutdown(socket.SHUT_RDWR)
+        self.client.socket.close()
         pygame.quit()
 
 def main():
@@ -230,7 +230,7 @@ def main():
         return
 
     game = Game(client)
-    menu = PauseMenu(game)
+    PauseMenu(game)
 
     game.start()
     game.game_loop()
