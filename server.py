@@ -104,6 +104,7 @@ class Server():
         self.game.add_player(player)
         self.receive_input(player)
 
+
     def send_game_data(self, player, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
         comm.send_data(player.socket, size)

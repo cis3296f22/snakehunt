@@ -1,4 +1,5 @@
 import pickle
+import comm
 from random import randint
 from math import floor as flr
 from pygame.time import Clock
@@ -6,7 +7,7 @@ from gamedata import *
 
 BOARD = (1000,1000)
 CELL = 10
-SPEED = CELL
+SPEED = 10
 COLS = BOARD[0]/CELL
 ROWS = BOARD[1]/CELL
 MAX_NAME_LENGTH = 32
@@ -18,6 +19,8 @@ class Player():
         self.dead = True
     def set_name(self, name):
         self.name = name
+
+
 
 # A single part of a snake.
 class BodyPart():
@@ -33,7 +36,8 @@ class BodyPart():
         self.ydir = ydir
 
     def move(self):
-        self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)
+        self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)    
+    
 
 class Snake():
     def __init__(self, position, length, xdir, ydir, bounds):
@@ -133,7 +137,8 @@ class Snake():
         for part in range(len(self.body)):
             if self.body[part].position in list(map(lambda z:z.position,self.body[part+1:])):
                 self.reset(self.position)
-                break
+                return True
+        return False
         
     def collides_snake(self, position):
         for part in self.body:
@@ -150,7 +155,8 @@ class Snake():
                 CellData(
                     body_part.position,
                     body_part.color,
-                    body_part.width
+                    body_part.width,
+                    direction = (body_part.xdir, body_part.ydir) if body_part == self.head else None
                 )
             )
         return body_parts
@@ -190,9 +196,9 @@ class Pellet():
 # this will not work for anything larger than a 23170 by 23170 size board/cell 
 # ratio for 32 bit systems.
 class RandomPellets():
-    val_1 = ((0,255,0), 1)
-    val_5 = ((0,0,255), 2)
-    val_10 = ((255,0,0), 3)
+    val_1 = ((150,255,150), 1)
+    val_2 = ((150,150,255), 2)
+    val_3 = ((255,150,150), 3)
 
     def __init__(self, numPellets):
         self.numPellets = numPellets
@@ -202,9 +208,9 @@ class RandomPellets():
     def setColor(self):
         val = randint(0, 10)
         if val == 10:
-            return self.val_10
+            return self.val_3
         elif val > 7:
-            return self.val_5
+            return self.val_2
         else:
             return self.val_1
         
@@ -337,15 +343,19 @@ class Game():
     def game_loop(self):
         clock = Clock()
         while self.running:
+
+            sound = None
             pos = self.pellets.getPositions()
             for player in self.players:
                 snake = player.snake
                 snake.move()
                 if [snake.head.position[0], snake.head.position[1]] in pos:
+                    sound = comm.Message.PELLET_EATEN
                     pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
                     self.pellets.resetPellet(pellet)
                     snake.grow(pellet.val, pellet.color)
-                snake.check_body_collision()
+                if snake.check_body_collision():
+                    sound= comm.Message.SELF_COLLISION
 
             leaderboard = self.get_leaderboard()
             for player in self.players:
@@ -354,7 +364,7 @@ class Game():
                 snakes = self.get_visible_snakes(player, camera_target)
                 pellets = self.get_visible_pellets(camera_target)
 
-                game_data = GameData(snake, snakes, pellets, leaderboard)
+                game_data = GameData(snake, snakes, pellets, leaderboard, sound)
                 game_data_serialized = pickle.dumps(game_data)
                 self.server.send_game_data(player, game_data_serialized)
             clock.tick(18)

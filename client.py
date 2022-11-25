@@ -1,12 +1,14 @@
 # Imports from standard/third-party modules
+import os
 import socket
 import pickle
 import pygame
 import pygame.font
+from pygame.locals import *
 import tkinter
+from threading import Thread
 from tkinter import *
 from tkinter import ttk
-import os
 import sys
 
 # Imports from local modules
@@ -109,16 +111,20 @@ class PauseMenu:
         ttk.Button(buttons_frame, text='Quit', command=self.quit).pack(side=tkinter.LEFT, padx=3)
 
 class Game():
-    def __init__(self, client):
+    def __init__(self, client, radio):
         pygame.init()
         self.camera = (500, 500)
         self.board = (1000, 1000)
         self.client = client
         self.running = True
+        self.radio = radio
         self.leaderboard_font = pygame.font.Font(resource_path('./fonts/arial_bold.ttf'), 10)
 
+
     def start(self):
-        self.window = pygame.display.set_mode(self.camera)
+        pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
+        flags = DOUBLEBUF
+        self.window = pygame.display.set_mode(self.camera, flags, 16)
 
     def show_leaderboard(self, leaderboard):
         top = 8
@@ -148,6 +154,34 @@ class Game():
             off_map_rect = (0, 0, self.camera[0], off_map_width)
             pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
 
+    def drawEyes(self, head, rect):
+        color = (255,0,0)
+        x = rect[0]
+        y = rect[1]
+        w = rect[2] -3
+        h = rect[3] -3 
+        left_eye = right_eye = None
+        if head.direction[0] == 0:  #parallel to y axis
+            if head.direction[1] == 1:  #going down
+                left_eye = (x + w, y + h-3, 2, 4)
+                right_eye = (x + 1, y + h-3, 2, 4)
+                
+            else:                       #going up
+                left_eye = (x + 1 , y + 1, 2, 4)
+                right_eye = (x + w, y + 1, 2, 4)
+                
+        if head.direction[1] == 0:  #parallel to x axis
+            if head.direction[0] == 1:  #going right
+                left_eye = (x + w -2, y + 1, 4, 2)
+                right_eye = (x + w-2, y + h, 4, 2)
+            else:                       #going left
+                left_eye = (x + 1 , y + h, 4, 2)
+                right_eye = (x + 1, y + 1, 4, 2)
+                
+        pygame.draw.rect(self.window, color, left_eye)
+        pygame.draw.rect(self.window, color, right_eye)
+
+
     def render(self, game_data):
         snakes = game_data.snakes
         pellets = game_data.pellets
@@ -159,7 +193,8 @@ class Game():
     
         head_rect = (self.camera[0] / 2, self.camera[1] / 2, my_head.width - 2, my_head.width - 2)
         pygame.draw.rect(self.window, my_head.color, head_rect)
-
+        self.drawEyes(my_head, head_rect)
+        
         game_objects = game_data.snake[1:]
         for snake in snakes:
             for body_part in snake:
@@ -175,22 +210,23 @@ class Game():
 
         self.show_leaderboard(game_data.leaderboard)
             
-        pygame.display.update()
+        pygame.display.flip()
 
     def get_direction(self):
         direction = None
         keys = pygame.key.get_pressed()
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]):
             direction = (-1, 0)
-        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]):
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]):
             direction = (1, 0)
-        elif (keys[pygame.K_UP] or keys[pygame.K_w]):
+        if (keys[pygame.K_UP] or keys[pygame.K_w]):
             direction = (0, -1)
-        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]):
+        if (keys[pygame.K_DOWN] or keys[pygame.K_s]):
             direction = (0, 1)
         return direction
 
     def game_loop(self):
+        
         while self.running:
             msg = None
             for event in pygame.event.get():
@@ -199,6 +235,7 @@ class Game():
                     self.running = False
             
             # Send input or quit signal to server
+            
             if msg == None:
                 msg = pickle.dumps(self.get_direction())
             comm.send_data(self.client.socket, comm.size_as_bytes(msg))
@@ -218,18 +255,45 @@ class Game():
                 break
 
             self.render(game_data)
+
+            if game_data.sound is not None:
+                self.radio.play_sound(game_data.sound)
             
         self.client.socket.shutdown(socket.SHUT_RDWR)
         self.client.socket.close()
         pygame.quit()
+        
+class MusicPlayer():
+    def __init__(self, song):
+        pygame.mixer.init()
+        
+        self.pellet_sound = pygame.mixer.Sound("sound/pellet_sound.mp3")
+        self.self_collision = pygame.mixer.Sound("sound/self_collision.mp3")
+##        self.other_collision = pygame.mixer.Sound()
+        Thread(target=self.play_song, args=(song,)).start()
+        
+    def play_song(self, song):
+        pygame.mixer.music.load(song)
+        pygame.mixer.music.play(-1)
+
+    def play_sound(self, sound):
+        if sound == comm.Message.PELLET_EATEN:
+            self.pellet_sound.play()
+        if sound == comm.Message.SELF_COLLISION:
+            self.self_collision.play()
+##        if sound == comm.Message.OTHER_COLLISION:
+##            self.pellet_sound.play()
+    
 
 def main():
+    
     client = Client()
     client.input_addr()
     if not client.connect():
         return
 
-    game = Game(client)
+    radio = MusicPlayer("sound/snake_hunt.mp3")
+    game = Game(client, radio)
     PauseMenu(game)
 
     game.start()

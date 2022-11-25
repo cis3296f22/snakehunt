@@ -1,6 +1,9 @@
 /build
 /design_personal
 /__pycache__
+
+/.DS_Store
+
 /dist
 /*.spec
-/.ds_store
+
