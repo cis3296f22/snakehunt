@@ -10,7 +10,8 @@ class Message(Enum):
     PELLET_EATEN = auto()       #when the player eats a pellet
     SELF_COLLISION = auto()     #when the player hits self
     OTHER_COLLISION = auto()    #when the player hits another player
-    
+    SERVER_SHUTDOWN = auto()
+
 # Sends the data in 'buffer' to 'socket'
 def send_data(socket, buffer):
     buffer_len = len(buffer)
@@ -42,5 +43,7 @@ def size_as_bytes(buffer):
     return size.encode()
 
 # 'buffer' is expected to be an array of bytes that can be decoded to a numeric string
-def size_as_int(buffer):
+
+def to_int(buffer):
     return int(buffer.decode())
+

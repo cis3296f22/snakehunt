@@ -139,6 +139,12 @@ class Snake():
                 self.reset(self.position)
                 return True
         return False
+        
+    def collides_snake(self, position):
+        for part in self.body:
+            if part.position == position:
+                return True
+        return False
 
     def get_visible_bodyparts(self, camera, camera_target):
         body_parts = []
@@ -278,6 +284,7 @@ class Game():
         self.players = []
         self.camera = Camera(500, 500)
         self.pellets = RandomPellets(25)
+        self.running = True
         self.bounds = {
             'left': 0,
             'right': BOARD[0],
@@ -320,10 +327,23 @@ class Game():
                 )
             )
         return pellets
+    
+    # Get a random position that does not collide with an existing snake
+    def get_random_position(self):
+        while True:
+            x_pos = randint(0, COLS - 1) * CELL
+            y_pos = randint(0, ROWS - 1) * CELL
+            position = (x_pos, y_pos)
+            for player in self.players:
+                if player.snake.collides_snake(position):
+                    continue
+            break
+        return position
 
     def game_loop(self):
         clock = Clock()
-        while True:
+        while self.running:
+
             sound = None
             pos = self.pellets.getPositions()
             for player in self.players:
