@@ -165,7 +165,6 @@ class Game():
             if head.direction[1] == 1:  #going down
                 left_eye = (x + w, y + h-3, 2, 4)
                 right_eye = (x + 1, y + h-3, 2, 4)
-                
             else:                       #going up
                 left_eye = (x + 1 , y + 1, 2, 4)
                 right_eye = (x + w, y + 1, 2, 4)
@@ -180,7 +179,6 @@ class Game():
                 
         pygame.draw.rect(self.window, color, left_eye)
         pygame.draw.rect(self.window, color, right_eye)
-
 
     def render(self, game_data):
         def make_rect(headRect, headPos, objPos, objWidth):
@@ -202,7 +200,6 @@ class Game():
         for pellet in pellets:
             pygame.draw.rect(self.window, pellet.color, make_rect(head_rect, my_head.position, pellet.position, pellet.width))
             
-
         for this_snake in snakes:
             for body_part in this_snake:
                 rect = make_rect(head_rect, my_head.position, body_part.position, body_part.width)
@@ -210,7 +207,6 @@ class Game():
                 if body_part.direction is not None:
                     self.draw_eyes(body_part, rect)
             
-                    
         pygame.draw.rect(self.window, my_head.color, head_rect)
         self.draw_eyes(my_head, head_rect)
         for body_part in snake[1:]:
@@ -233,7 +229,6 @@ class Game():
         return direction
 
     def game_loop(self):
-        
         while self.running:
             msg = None
             for event in pygame.event.get():
@@ -253,9 +248,14 @@ class Game():
                 break
             
             # Receive game data from server, use it to render
-            size_as_bytes = comm.receive_data(self.client.socket, comm.MSG_LEN)
-            length = comm.to_int(size_as_bytes)
-            game_data = pickle.loads(comm.receive_data(self.client.socket, length))
+            # If an exception occurs it is likely that the server has shut down, in which case
+            # we exit the client.
+            try:
+                size_as_bytes = comm.receive_data(self.client.socket, comm.MSG_LEN)
+                length = comm.to_int(size_as_bytes)
+                game_data = pickle.loads(comm.receive_data(self.client.socket, length))
+            except:
+                break
 
             if game_data == comm.Message.SERVER_SHUTDOWN:
                 print("Server shutting down")
@@ -265,9 +265,7 @@ class Game():
 
             if game_data.sound is not None:
                 self.radio.play_sound(game_data.sound)
-            
-        self.client.socket.shutdown(socket.SHUT_RDWR)
-        self.client.socket.close()
+
         pygame.quit()
         
 class MusicPlayer():

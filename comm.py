@@ -46,4 +46,3 @@ def size_as_bytes(buffer):
 
 def to_int(buffer):
     return int(buffer.decode())
-

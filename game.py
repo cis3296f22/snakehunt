@@ -4,6 +4,7 @@ from random import randint
 from math import floor as flr
 from pygame.time import Clock
 from gamedata import *
+from socket import SHUT_RDWR
 
 BOARD = (1000,1000)
 CELL = 10
@@ -19,8 +20,6 @@ class Player():
         self.dead = True
     def set_name(self, name):
         self.name = name
-
-
 
 # A single part of a snake.
 class BodyPart():
@@ -38,7 +37,6 @@ class BodyPart():
     def move(self):
         self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)    
     
-
 class Snake():
     def __init__(self, position, length, xdir, ydir, bounds):
         #(west,north,east,south) points
@@ -171,7 +169,6 @@ class Pellet():
         self.width = CELL
         self.height = CELL
 
-    
     def setPos(self):
         xpos = randint(1, COLS-1)*CELL
         ypos = randint(1,ROWS-1)*CELL
@@ -297,6 +294,8 @@ class Game():
 
     def remove_player(self, player):
         self.players.remove(player)
+        player.socket.shutdown(SHUT_RDWR)
+        player.socket.close()
 
     def get_leaderboard(self):
         leaderboard = []
@@ -343,7 +342,6 @@ class Game():
     def game_loop(self):
         clock = Clock()
         while self.running:
-
             sound = None
             pos = self.pellets.getPositions()
             for player in self.players:
@@ -366,5 +364,8 @@ class Game():
 
                 game_data = GameData(snake, snakes, pellets, leaderboard, sound)
                 game_data_serialized = pickle.dumps(game_data)
-                self.server.send_game_data(player, game_data_serialized)
+                try:
+                    self.server.send_game_data(player, game_data_serialized)
+                except:
+                    pass
             clock.tick(18)
