@@ -14,7 +14,8 @@ ROWS = BOARD[1]/CELL
 MAX_NAME_LENGTH = 32
 
 class Player():
-    def __init__(self, snake, socket):
+    def __init__(self, id, snake, socket):
+        self.id = id
         self.snake = snake
         self.socket = socket
         self.dead = True
@@ -38,6 +39,7 @@ class BodyPart():
         self.position = (self.position[0] + SPEED * self.xdir, self.position[1] + SPEED * self.ydir)    
     
 class Snake():
+    MAX_INVINCIBLE_LENGTH = 3
     def __init__(self, position, length, xdir, ydir, bounds):
         #(west,north,east,south) points
         self.bounds = bounds
@@ -63,8 +65,6 @@ class Snake():
         self.position = position
         self.body.append(self.head)
         self.length = 1
-        self.dirnx = 0
-        self.dirny = 1
         
     # Change direction of head of snake based on input
     def change_direction(self, direction):
@@ -130,20 +130,36 @@ class Snake():
             elif xdir == 0 and ydir == -1:
                 self.body.append(BodyPart((previous.position[0],previous.position[1]+(i+1)*width), xdir, ydir, self.color))
     
-    def check_body_collision(self):
-        #Snake dies and game is over for user when snake collides with itself
+    # Returns true if this snake's head collided with its own body, false otherwise.
+    def collides_self(self):
         for part in range(len(self.body)):
             if self.body[part].position in list(map(lambda z:z.position,self.body[part+1:])):
                 self.reset(self.position)
                 return True
         return False
+    
+    # Returns true if this snake's head collided with another snake's body, false otherwise.
+    def collides_other(self, other_snakes):
+        for snake in other_snakes:
+            for part in snake.body:
+                if self.head.position == part.position and not self.is_invincible() and not snake.is_invincible():
+                    return True
+        return False
         
-    def collides_snake(self, position):
+    # Returns true if the given position would collide with the snake, false otherwise.
+    def collides_position(self, position):
         for part in self.body:
             if part.position == position:
                 return True
         return False
+    
+    # Returns true if this snake cannot die, false otherwise.
+    def is_invincible(self):
+        if len(self.body) <= self.MAX_INVINCIBLE_LENGTH:
+            return True
+        return False
 
+    # Get the body parts of this snake that are visible by the given camera.
     def get_visible_bodyparts(self, camera, camera_target):
         body_parts = []
         for body_part in self.body:
@@ -334,7 +350,7 @@ class Game():
             y_pos = randint(0, ROWS - 1) * CELL
             position = (x_pos, y_pos)
             for player in self.players:
-                if player.snake.collides_snake(position):
+                if player.snake.collides_position(position):
                     continue
             break
         return position
@@ -344,7 +360,12 @@ class Game():
         while self.running:
             sound = None
             pos = self.pellets.getPositions()
+            snakes = []
             for player in self.players:
+                snakes.append(player.snake)
+            for player in self.players:
+                others = snakes[:]
+                others.remove(player.snake)
                 snake = player.snake
                 snake.move()
                 if [snake.head.position[0], snake.head.position[1]] in pos:
@@ -352,17 +373,20 @@ class Game():
                     pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
                     self.pellets.resetPellet(pellet)
                     snake.grow(pellet.val, pellet.color)
-                if snake.check_body_collision():
-                    sound= comm.Message.SELF_COLLISION
+                if snake.collides_self():
+                    sound = comm.Message.SELF_COLLISION
+                elif snake.collides_other(others):
+                    sound = comm.Message.OTHER_COLLISION
+                    snake.reset(snake.head.position)
 
             leaderboard = self.get_leaderboard()
             for player in self.players:
                 camera_target = player.snake.head.position
                 snake = player.snake.get_visible_bodyparts(self.camera, camera_target)
-                snakes = self.get_visible_snakes(player, camera_target)
+                other_snakes = self.get_visible_snakes(player, camera_target)
                 pellets = self.get_visible_pellets(camera_target)
 
-                game_data = GameData(snake, snakes, pellets, leaderboard, sound)
+                game_data = GameData(snake, other_snakes, pellets, leaderboard, sound)
                 game_data_serialized = pickle.dumps(game_data)
                 try:
                     self.server.send_game_data(player, game_data_serialized)
