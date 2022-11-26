@@ -154,7 +154,7 @@ class Game():
             off_map_rect = (0, 0, self.camera[0], off_map_width)
             pygame.draw.rect(self.window, (255, 0, 0), off_map_rect)
 
-    def drawEyes(self, head, rect):
+    def draw_eyes(self, head, rect):
         color = (255,0,0)
         x = rect[0]
         y = rect[1]
@@ -183,33 +183,40 @@ class Game():
 
 
     def render(self, game_data):
+        def make_rect(headRect, headPos, objPos, objWidth):
+            left = headRect[0] + objPos[0] - headPos[0]
+            top = headRect[1] + objPos[1] - headPos[1]
+            return (left, top, objWidth-2, objWidth-2)
+        
+        snake = game_data.snake
         snakes = game_data.snakes
         pellets = game_data.pellets
 
         self.window.fill((0, 0, 0))
-        my_head = game_data.snake[0]
+        my_head = snake[0]
 
         self.render_bounds(my_head)
     
         head_rect = (self.camera[0] / 2, self.camera[1] / 2, my_head.width - 2, my_head.width - 2)
-        pygame.draw.rect(self.window, my_head.color, head_rect)
-        self.drawEyes(my_head, head_rect)
-        
-        game_objects = game_data.snake[1:]
-        for snake in snakes:
-            for body_part in snake:
-                game_objects.append(body_part)
-        for pellet in pellets:
-            game_objects.append(pellet)
-        
-        for object in game_objects:
-            left = head_rect[0] + object.position[0] - my_head.position[0]
-            top = head_rect[1] + object.position[1] - my_head.position[1]
-            rect = (left, top, object.width - 2, object.width - 2)
-            pygame.draw.rect(self.window, object.color, rect);
 
-        self.show_leaderboard(game_data.leaderboard)
+        for pellet in pellets:
+            pygame.draw.rect(self.window, pellet.color, make_rect(head_rect, my_head.position, pellet.position, pellet.width))
             
+
+        for this_snake in snakes:
+            for body_part in this_snake:
+                rect = make_rect(head_rect, my_head.position, body_part.position, body_part.width)
+                pygame.draw.rect(self.window, body_part.color, rect)
+                if body_part.direction is not None:
+                    self.draw_eyes(body_part, rect)
+            
+                    
+        pygame.draw.rect(self.window, my_head.color, head_rect)
+        self.draw_eyes(my_head, head_rect)
+        for body_part in snake[1:]:
+            pygame.draw.rect(self.window, body_part.color, make_rect(head_rect, my_head.position, body_part.position, body_part.width))
+            
+        self.show_leaderboard(game_data.leaderboard)
         pygame.display.flip()
 
     def get_direction(self):
