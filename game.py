@@ -296,7 +296,7 @@ class Game():
         self.server = server or None
         self.players = []
         self.camera = Camera(500, 500)
-        self.pellets = RandomPellets(25)
+        self.random_pellets = RandomPellets(25)
         self.running = True
         self.bounds = {
             'left': 0,
@@ -331,7 +331,7 @@ class Game():
 
     def get_visible_pellets(self, camera_target):
         pellets = []
-        for pellet in self.pellets.pellets:
+        for pellet in self.random_pellets.pellets:
             if not self.camera.within_bounds(pellet.position, camera_target):
                 continue
             pellets.append(
@@ -359,7 +359,7 @@ class Game():
         clock = Clock()
         while self.running:
             sound = None
-            pos = self.pellets.getPositions()
+            pos = self.random_pellets.getPositions()
             snakes = []
             for player in self.players:
                 snakes.append(player.snake)
@@ -370,8 +370,8 @@ class Game():
                 snake.move()
                 if [snake.head.position[0], snake.head.position[1]] in pos:
                     sound = comm.Message.PELLET_EATEN
-                    pellet = self.pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
-                    self.pellets.resetPellet(pellet)
+                    pellet = self.random_pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
+                    self.random_pellets.resetPellet(pellet)
                     snake.grow(pellet.val, pellet.color)
                 if snake.collides_self():
                     sound = comm.Message.SELF_COLLISION

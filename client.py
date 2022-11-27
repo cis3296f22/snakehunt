@@ -284,11 +284,8 @@ class MusicPlayer():
     def play_sound(self, sound):
         if sound == comm.Message.PELLET_EATEN:
             self.pellet_sound.play()
-        if sound == comm.Message.SELF_COLLISION:
+        elif sound == comm.Message.SELF_COLLISION or sound == comm.Message.OTHER_COLLISION:
             self.self_collision.play()
-##        if sound == comm.Message.OTHER_COLLISION:
-##            self.pellet_sound.play()
-    
 
 def main():
     
