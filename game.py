@@ -361,6 +361,7 @@ class Game():
             sound = None
             pos = self.random_pellets.getPositions()
             snakes = []
+            dead_snakes = []
             for player in self.players:
                 snakes.append(player.snake)
             for player in self.players:
@@ -377,7 +378,9 @@ class Game():
                     sound = comm.Message.SELF_COLLISION
                 elif snake.collides_other(others):
                     sound = comm.Message.OTHER_COLLISION
-                    snake.reset(snake.head.position)
+                    dead_snakes.append(snake)
+            for snake in dead_snakes:
+                snake.reset(snake.head.position)
 
             leaderboard = self.get_leaderboard()
             for player in self.players:
