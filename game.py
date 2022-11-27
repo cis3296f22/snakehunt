@@ -43,18 +43,17 @@ class Snake():
     def __init__(self, position, length, xdir, ydir, bounds):
         #(west,north,east,south) points
         self.bounds = bounds
-        self.color = (255, 255, 200)
+        self.head_color = (255, 255, 200)
         self.body = []
         self.turns = {}
-        self.position = position
         self.length = length
-        self.initialize(self.position, xdir, ydir)
+        self.initialize(position, xdir, ydir)
 
     # Initializes all parts of the snake based on length
     def initialize(self, position, xdir, ydir):
         posx = position[0]
         for i in range(self.length):
-            self.body.append(BodyPart((posx, position[1]), xdir, ydir, self.color))
+            self.body.append(BodyPart((posx, position[1]), xdir, ydir, self.head_color))
             posx -= SPEED
         self.head = self.body[0]
 
@@ -62,9 +61,8 @@ class Snake():
     def reset(self, position):
         self.body = []
         self.turns = {}
-        self.position = position
-        self.body.append(self.head)
         self.length = 1
+        self.initialize(position, self.head.xdir, self.head.ydir)
         
     # Change direction of head of snake based on input
     def change_direction(self, direction):
@@ -103,7 +101,6 @@ class Snake():
     # amount of body parts to the snake
     def grow(self, amount, color):
         size = self.length
-        self.color = color
         self.length = size + amount
         previous = self.body[size-1]
         
@@ -116,33 +113,36 @@ class Snake():
             # if the previous part is moving right, append
             # this part to the left of it with the same direction
             if xdir == 1 and ydir == 0:
-                self.body.append(BodyPart((previous.position[0]-(i+1)*width,previous.position[1]), xdir, ydir, self.color))
+                self.body.append(BodyPart((previous.position[0]-(i+1)*width,previous.position[1]), xdir, ydir, color))
             # if the previous part is moving left, append
             # this part to the right of it with the same direction
             elif xdir == -1 and ydir == 0:
-                self.body.append(BodyPart((previous.position[0]+(i+1)*width,previous.position[1]), xdir, ydir, self.color))
+                self.body.append(BodyPart((previous.position[0]+(i+1)*width,previous.position[1]), xdir, ydir, color))
             # if the previous part is moving up, append
             # this part to the bottom of it with the same direction
             elif xdir == 0 and ydir == 1:
-                self.body.append(BodyPart((previous.position[0],previous.position[1]-(i+1)*width), xdir, ydir, self.color))
+                self.body.append(BodyPart((previous.position[0],previous.position[1]-(i+1)*width), xdir, ydir, color))
             # if the previous part is moving down, append
             # this part to the top of it with the same direction
             elif xdir == 0 and ydir == -1:
-                self.body.append(BodyPart((previous.position[0],previous.position[1]+(i+1)*width), xdir, ydir, self.color))
+                self.body.append(BodyPart((previous.position[0],previous.position[1]+(i+1)*width), xdir, ydir, color))
     
     # Returns true if this snake's head collided with its own body, false otherwise.
     def collides_self(self):
+        if self.is_invincible():
+            return False
         for part in range(len(self.body)):
             if self.body[part].position in list(map(lambda z:z.position,self.body[part+1:])):
-                self.reset(self.position)
                 return True
         return False
     
     # Returns true if this snake's head collided with another snake's body, false otherwise.
     def collides_other(self, other_snakes):
+        if self.is_invincible():
+            return False
         for snake in other_snakes:
             for part in snake.body:
-                if self.head.position == part.position and not self.is_invincible() and not snake.is_invincible():
+                if self.head.position == part.position and not snake.is_invincible():
                     return True
         return False
         
@@ -158,6 +158,16 @@ class Snake():
         if len(self.body) <= self.MAX_INVINCIBLE_LENGTH:
             return True
         return False
+    
+    # Turn a snake into food pellets
+    # Every other body part of the snake is converted to a food pellet
+    def cook(self):
+        remains = []
+        for i in range(1, len(self.body), 2):
+            pel = Pellet(RandomPellets.val_1, is_remains=True)
+            pel.setPos(self.body[i].position[0], self.body[i].position[1])
+            remains.append(pel)
+        return remains
 
     # Get the body parts of this snake that are visible by the given camera.
     def get_visible_bodyparts(self, camera, camera_target):
@@ -177,27 +187,24 @@ class Snake():
 
 #pellet object control
 class Pellet():
-    def __init__(self, color_val):
-        self.position = self.setPos()
-        self.eaten = False
+    def __init__(self, color_val, is_remains=False):
+        self.position = self.setRandomPos()
         self.color = color_val[0]
         self.val = color_val[1]
+        self.is_remains = is_remains    # Is this pellet part of the remains of a dead snake?
         self.width = CELL
         self.height = CELL
 
-    def setPos(self):
+    def setRandomPos(self):
         xpos = randint(1, COLS-1)*CELL
         ypos = randint(1,ROWS-1)*CELL
         return (xpos, ypos)
 
     def getPos(self):
         return self.position[0], self.position[1]
-
-    def destroy(self):
-        self.position = self.setPos()
         
     # set a pellet's position to a value passed in
-    def setDetPos(self,xpos,ypos):
+    def setPos(self,xpos,ypos):
         self.position = [xpos,ypos]
 
 # Generates multiple pellets in random locations such that they do not
@@ -235,7 +242,7 @@ class RandomPellets():
             # available positions (-1 added to avoid error by popping out of range)
             pos = self.availablePositions.pop(randint(0,len(self.availablePositions)-1))
             # manually set the position of the pellet to the random position
-            pel.setDetPos(pos[0],pos[1])
+            pel.setPos(pos[0],pos[1])
             pellets.append(pel)
         return(pellets)
     
@@ -261,10 +268,13 @@ class RandomPellets():
         color_val = self.setColor()
         pel2 = Pellet(color_val)
         # generate a new pellet
-        pel2.setDetPos(pos[0], pos[1])
+        pel2.setPos(pos[0], pos[1])
         # add the deleted pellet's position back to the available positions
         self.availablePositions.append(pel.position)
         self.pellets.append(pel2)
+
+    def addPellets(self, pellets):
+        self.pellets = self.pellets + pellets
 
 class Camera():
     def __init__(self, width, height):
@@ -362,8 +372,11 @@ class Game():
             pos = self.random_pellets.getPositions()
             snakes = []
             dead_snakes = []
+
             for player in self.players:
                 snakes.append(player.snake)
+
+            # Check collision with pellets, self, and other snakes
             for player in self.players:
                 others = snakes[:]
                 others.remove(player.snake)
@@ -371,17 +384,29 @@ class Game():
                 snake.move()
                 if [snake.head.position[0], snake.head.position[1]] in pos:
                     sound = comm.Message.PELLET_EATEN
-                    pellet = self.random_pellets.pellets[pos.index([snake.head.position[0],snake.head.position[1]])]
-                    self.random_pellets.resetPellet(pellet)
+                    i = pos.index([snake.head.position[0],snake.head.position[1]])
+                    pellet = self.random_pellets.pellets[i]
+                    if pellet.is_remains:
+                        self.random_pellets.pellets.pop(i)
+                    else:
+                        self.random_pellets.resetPellet(pellet)
                     snake.grow(pellet.val, pellet.color)
                 if snake.collides_self():
                     sound = comm.Message.SELF_COLLISION
+                    random_pos = self.get_random_position()
+                    snake.reset(random_pos)
                 elif snake.collides_other(others):
                     sound = comm.Message.OTHER_COLLISION
                     dead_snakes.append(snake)
-            for snake in dead_snakes:
-                snake.reset(snake.head.position)
 
+            # Turn the dead snakes to food and reset them
+            for snake in dead_snakes:
+                remains = snake.cook()
+                self.random_pellets.addPellets(remains)
+                random_pos = self.get_random_position()
+                snake.reset(random_pos)
+
+            # Gather data to send to each client
             leaderboard = self.get_leaderboard()
             for player in self.players:
                 camera_target = player.snake.head.position
@@ -395,4 +420,6 @@ class Game():
                     self.server.send_game_data(player, game_data_serialized)
                 except:
                     pass
+
+            # Framerate
             clock.tick(18)
