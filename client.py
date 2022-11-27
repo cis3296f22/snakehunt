@@ -272,8 +272,8 @@ class MusicPlayer():
     def __init__(self, song):
         pygame.mixer.init()
         
-        self.pellet_sound = pygame.mixer.Sound("sound/pellet_sound.mp3")
-        self.self_collision = pygame.mixer.Sound("sound/self_collision.mp3")
+        self.pellet_sound = pygame.mixer.Sound(resource_path("sound/pellet_sound.mp3"))
+        self.self_collision = pygame.mixer.Sound(resource_path("sound/self_collision.mp3"))
 ##        self.other_collision = pygame.mixer.Sound()
         Thread(target=self.play_song, args=(song,)).start()
         
@@ -294,7 +294,7 @@ def main():
     if not client.connect():
         return
 
-    radio = MusicPlayer("sound/snake_hunt.mp3")
+    radio = MusicPlayer(resource_path("sound/snake_hunt.mp3"))
     game = Game(client, radio)
     PauseMenu(game)
 
