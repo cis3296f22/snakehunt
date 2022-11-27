@@ -33,7 +33,7 @@ class Server():
             print("Connected to:", addr)
 
             position = self.game.get_random_position()
-            snake = Snake(position, 1, 1, 0, self.game.bounds)
+            snake = Snake(position, Snake.INITIAL_LENGTH, 1, 0, self.game.bounds)
             player = Player(self.next_id, snake, sock)
             self.next_id = self.next_id + 1
 

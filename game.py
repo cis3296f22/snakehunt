@@ -40,28 +40,38 @@ class BodyPart():
     
 class Snake():
     MAX_INVINCIBLE_LENGTH = 3
+    INITIAL_LENGTH = 1
     def __init__(self, position, length, xdir, ydir, bounds):
         #(west,north,east,south) points
         self.bounds = bounds
-        self.head_color = (255, 255, 200)
+        self.color = RandomPellets.val_1[0]
         self.body = []
         self.turns = {}
+        if length < 1: length = 1
         self.length = length
         self.initialize(position, xdir, ydir)
 
     # Initializes all parts of the snake based on length
     def initialize(self, position, xdir, ydir):
         posx = position[0]
+        posy = position[1]
         for i in range(self.length):
-            self.body.append(BodyPart((posx, position[1]), xdir, ydir, self.head_color))
-            posx -= SPEED
+            self.body.append(BodyPart((posx, posy), xdir, ydir, self.color))
+            if xdir == 1:
+                posx -= SPEED
+            elif xdir == -1:
+                posx += SPEED
+            elif ydir == 1:
+                posy -= SPEED
+            else:
+                posy += SPEED
         self.head = self.body[0]
 
     # Reset snake so player can play again once they die
     def reset(self, position):
         self.body = []
         self.turns = {}
-        self.length = 1
+        self.length = self.INITIAL_LENGTH
         self.initialize(position, self.head.xdir, self.head.ydir)
         
     # Change direction of head of snake based on input
@@ -373,15 +383,21 @@ class Game():
             snakes = []
             dead_snakes = []
 
+            # List of all snakes. Each player will copy this list
+            # and remove their own snake from it. This is so that
+            # each player can detect collision with other snakes.
             for player in self.players:
                 snakes.append(player.snake)
 
-            # Check collision with pellets, self, and other snakes
+            # Move each player
+            for player in self.players:
+                player.snake.move()
+
+            # Check for collision with pellets, self, and other snakes for each snake
             for player in self.players:
                 others = snakes[:]
-                others.remove(player.snake)
                 snake = player.snake
-                snake.move()
+                others.remove(snake)
                 if [snake.head.position[0], snake.head.position[1]] in pos:
                     sound = comm.Message.PELLET_EATEN
                     i = pos.index([snake.head.position[0],snake.head.position[1]])
@@ -393,8 +409,7 @@ class Game():
                     snake.grow(pellet.val, pellet.color)
                 if snake.collides_self():
                     sound = comm.Message.SELF_COLLISION
-                    random_pos = self.get_random_position()
-                    snake.reset(random_pos)
+                    dead_snakes.append(snake)
                 elif snake.collides_other(others):
                     sound = comm.Message.OTHER_COLLISION
                     dead_snakes.append(snake)
