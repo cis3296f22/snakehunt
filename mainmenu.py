@@ -1,8 +1,9 @@
-import pygame
+import pygame, sys
 import pygame.gfxdraw
 
-buttons = pygame.sprite.Group()
 screen = pygame.display.set_mode((600, 400))
+buttons = pygame.sprite.Group()
+
 class Button(pygame.sprite.Sprite):
     def __init__(self, position, text, size, colors="white on blue", borderc=(255,255,255), command=lambda: print("No command defined")):
         super().__init__()
@@ -65,3 +66,52 @@ class Button(pygame.sprite.Sprite):
         self.draw_button()
         self.hover()
         self.click()
+
+
+         
+def on_quit():
+    print("Quitting, goodbye")
+    #pygame.quit()
+    #sys.exit()
+    
+    
+def on_enterserver():
+    print("entering game")
+    
+    # inputfield IP
+    
+    # inputfield Port
+    
+
+      
+
+
+      
+def mainmenu():
+    buttons = pygame.sprite.Group()
+    screen = pygame.display.set_mode((600, 400))
+    clock = pygame.time.Clock()
+    
+    # Quit button
+    quit_button = Button(buttons, screen, (10, 10), "Quit", 55, "black on white", command=on_quit)
+    # Enter Server button
+    enterserver_button = Button(buttons, screen, (10, 100), "Enter Server", 40, "black on red", command=on_enterserver)
+    
+    # main loop for drawing screen/buttons
+    while True:
+        for event in pygame.event.get():
+            # if user clicks "x", completely exit
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        Button.buttons.update()
+        Button.buttons.draw(Button.screen)
+        clock.tick(60)
+        pygame.display.update()
+          
+    
+if __name__ == '__main__':
+    pygame.init()
+    mainmenu()
+    
+          
