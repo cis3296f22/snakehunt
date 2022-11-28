@@ -28,9 +28,6 @@ class Server():
         while True:
             sock, addr = self.s.accept()
             if not self.game.running:
-                sock.shutdown(socket.SHUT_RDWR)
-                sock.close()
-                self.s.close()
                 break
             print("Connected to:", addr)
             Thread(target=self.player_handler, args=(sock,)).start()
@@ -84,11 +81,10 @@ class Server():
                 input_size = comm.to_int(input_size_as_bytes)
                 input = pickle.loads(comm.receive_data(player.socket, input_size))
             except:
-                continue
+                self.game.remove_player(player)
+                break
             if input == comm.Message.QUIT:
                 self.game.remove_player(player)
-                player.socket.shutdown(socket.SHUT_RDWR)
-                player.socket.close()
                 break
             player.snake.change_direction(input)
 
@@ -120,13 +116,9 @@ class Server():
         for player in self.game.players:
             comm.send_data(player.socket, shutdown_msg_length)
             comm.send_data(player.socket, shutdown_msg)
-            player.socket.shutdown(socket.SHUT_RDWR)
-            player.socket.close()
 
         terminator_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         terminator_socket.connect((self.host, self.port))
-        terminator_socket.shutdown(socket.SHUT_RDWR)
-        terminator_socket.close()
         
     # Prompt the user to shutdown the server by typing 'exit'
     def listen_exit(self):
