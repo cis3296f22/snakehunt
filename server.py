@@ -12,6 +12,7 @@ class Server():
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.next_id = 0
         
     def start(self):
         try:
@@ -30,7 +31,13 @@ class Server():
             if not self.game.running:
                 break
             print("Connected to:", addr)
-            Thread(target=self.player_handler, args=(sock,)).start()
+
+            position = self.game.get_random_position()
+            snake = Snake(position, Snake.INITIAL_LENGTH, 1, 0, self.game.bounds)
+            player = Player(self.next_id, snake, sock)
+            self.next_id = self.next_id + 1
+
+            Thread(target=self.player_handler, args=(player,)).start()
 
     def receive_name(self, player):
         while True:
@@ -88,18 +95,10 @@ class Server():
                 break
             player.snake.change_direction(input)
 
-    def player_handler(self, socket):
-        xdir = 1
-        ydir = 0
-        position = self.game.get_random_position()
-        snake = Snake(position, 1, xdir, ydir, self.game.bounds)
-        player = Player(snake, socket)
-        
+    def player_handler(self, player):
         if not self.receive_name(player): return
-
         self.game.add_player(player)
         self.receive_input(player)
-
 
     def send_game_data(self, player, game_data_serialized):
         size = comm.size_as_bytes(game_data_serialized)
