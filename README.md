@@ -51,5 +51,5 @@ To run the executable, do the following:
 * Use the Up/Down/Left/Right arrow keys to navigate the snake
 * Use your computer's volume controls to turn the sound up or down
 
-# How to contribute
+## How to contribute
 Follow this project board to know the latest status of the project: [https://github.com/orgs/cis3296f22/projects/97](https://github.com/orgs/cis3296f22/projects/97)  
