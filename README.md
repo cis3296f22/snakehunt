@@ -1,11 +1,11 @@
 # Snake Hunt: A Multiplayer Web Game with Python
-## John Bernardin, Jaffar Alzeidi, Sean Britt, Katrina Janeczko
+### John Bernardin, Jaffar Alzeidi, Sean Britt, Katrina Janeczko
 
-### Description
+## Description
 A multiplayer snake game. Each player controls a snake. Each snake must avoid colliding with itself and other snakes, and consume pellets to grow. A leaderboard keeps track of the lengths of the snakes in game. Upon starting the game, each player enters a name to distinguish themselves from other players. When a snake consumes a pellet, it adds a block of that color to its body. Music and sound effects play as a player navigates its snake around the board, whose borders wrap around and whose center remains the player's snake. 
 <img width="495" alt="Screen Shot 2022-11-28 at 10 28 21 PM" src="https://user-images.githubusercontent.com/73796086/204431645-88d2bb55-bf96-46f3-ba13-0d6410ddb9f7.png">
 
-### How to run
+## How to run
 On Windows and Mac:
 1. Download `server.exe` (Windows) or `server` (Mac) from the latest release, this will now be called the server executable
 2. Download `client.exe` (Windows) or `client` (Mac) from the latest release, this will now be called the client executable
@@ -21,7 +21,7 @@ On Windows and Mac:
 9. Repeat 5 - 8 to connect multiple clients (from a single computer, you can open multiple terminals and open the client executable in each terminal)
 10. To exit the game from the client, cick the red `x` in the upper left corner. To shut down the server, type 'exit' in the terminal.
 
-### Alternate way to run
+## Alternate way to run
 Alternatively, if you do not want to download an executable for Windows or Mac, or if you use Linux,
 
 * Install Python (https://www.python.org/downloads/) (preferably version 3.7 or newer)
@@ -35,7 +35,7 @@ Alternatively, if you do not want to download an executable for Windows or Mac, 
 
 You now have a working copy of the game!
 
-# Troubleshooting on Mac
+## Troubleshooting on Mac
 When downloading the executable snake-hunt from GitHub, your Mac may give you the error message: `“snake-hunt” can't be opened because Apple cannot check it for malicious software.` 
 
 To run the executable, do the following:
@@ -47,7 +47,7 @@ To run the executable, do the following:
 5. It may tell you `permission denied: ./client` and/or `./server`. In this case, you must change the permissions of the file by typing `chmod 755 server` (or `chmod 755 client`). Now you can type `./client` or `./server` and it will begin to run.
 6. If you are still having trouble, you may need to follow the instructions for cloning the repository and running the code directly from the terminal.
 
-# How to play
+## How to play
 * Use the Up/Down/Left/Right arrow keys to navigate the snake
 * Use your computer's volume controls to turn the sound up or down
 
