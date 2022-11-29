@@ -3,17 +3,53 @@ from enum import Enum, auto
 MSG_LEN = 8
 
 class Message(Enum):
+    """
+    An enum of messages that are sent between client and server.
+
+    Attributes
+    ----------
+    QUIT:
+        Indicate that the client has quit
+    NAME_OK:
+        Indicate that the client's chosen name is valid
+    NAME_TOO_LONG:
+        Indicate that the client's chosen name is beyond max length
+    NAME_USED:
+        Indicate that the client's chosen name is already used
+    PELLET_EATEN:
+        Indicate that a pellet was consumed
+    SELF_COLLISION:
+        Indicate that a snake collided with its own body
+    OTHER_COLLISION:
+        Indicate that a snake collided with another snake
+    SERVER_SHUTDOWN:
+        Indicate that the server has shutdown
+    """
     QUIT = auto()
     NAME_OK = auto()
     NAME_TOO_LONG = auto()
     NAME_USED = auto()
-    PELLET_EATEN = auto()       #when the player eats a pellet
-    SELF_COLLISION = auto()     #when the player hits self
-    OTHER_COLLISION = auto()    #when the player hits another player
+    PELLET_EATEN = auto()
+    SELF_COLLISION = auto()
+    OTHER_COLLISION = auto()
     SERVER_SHUTDOWN = auto()
 
-# Sends the data in 'buffer' to 'socket'
 def send_data(socket, buffer):
+    """
+    Send binary buffer through socket.
+
+    Parameters
+    ----------
+    socket (socket.socket):
+        A socket
+
+    buffer (bytes)
+        A bytes object containing data to be sent to socket
+            
+    Return
+    ------
+    None
+    """
     buffer_len = len(buffer)
     total_sent = 0
     while total_sent < buffer_len:
@@ -22,8 +58,22 @@ def send_data(socket, buffer):
             raise RuntimeError('Socket connection broken')
         total_sent += sent
 
-# Receive message of size 'msg_length' from socket
 def receive_data(socket, msg_length):
+    """
+    Receive binary data of a given length through socket.
+
+    Parameters
+    ----------
+    socket (socket.socket):
+        A socket
+
+    msg_length (int)
+        The number of bytes to receive
+            
+    Return
+    ------
+    A bytes object containing the data received
+    """
     chunks = []
     bytes_received = 0
     while bytes_received < msg_length:
@@ -34,15 +84,39 @@ def receive_data(socket, msg_length):
         bytes_received = bytes_received + len(chunk)
     return b''.join(chunks)
 
-# Returns the numeric string representation of the size of 'buffer' as an array of bytes
-# To get the size of 'buffer' the return value must be decoded then cast to an int 
 def size_as_bytes(buffer):
+    """
+    Return the size of a buffer as a bytes object.
+
+    Used to send the size of a buffer through a socket.
+
+    Parameters
+    ----------
+    buffer (bytes):
+        The bytes object to get the size of
+
+    Return
+    ------
+    size of buffer as a bytes object
+    """
     size = str(len(buffer))
     for i in range(MSG_LEN - len(size)):
         size = '0' + size
     return size.encode()
 
-# 'buffer' is expected to be an array of bytes that can be decoded to a numeric string
-
 def to_int(buffer):
+    """
+    Return the numeric value of buffer.
+
+    buffer is expected to be the result of a previous size_as_bytes() call.
+
+    Parameters
+    ----------
+    buffer (bytes):
+        A bytes object denoting a number
+
+    Return
+    ------
+    size of buffer as an int
+    """
     return int(buffer.decode())
