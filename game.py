@@ -854,7 +854,6 @@ class Game():
         clock = Clock()
         while self.running:
             sound = None
-            pos = self.random_pellets.getPositions()
             snakes = []
             dead_snakes = []
 
@@ -865,6 +864,7 @@ class Game():
                 player.snake.move()
 
             for player in self.players:
+                pos = self.random_pellets.getPositions()
                 others = snakes[:]
                 snake = player.snake
                 others.remove(snake)
