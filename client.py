@@ -14,6 +14,7 @@ import sys
 # Imports from local modules
 from gamedata import *
 import comm
+import button
 
 root = Tk()
 
@@ -135,6 +136,15 @@ class Game():
             record_rect.topleft = (8, top)
             self.window.blit(record, record_rect)
             top += 13
+        
+            
+    def show_quit(self):
+        quit_string = 'Press ESC to quit'
+        quitmsg = self.leaderboard_font.render(quit_string, True, (255, 255, 255))
+        quit_rect = quitmsg.get_rect()
+        quit_rect.topleft = (410, 8)
+        self.window.blit(quitmsg, quit_rect)
+        
 
     def render_bounds(self, head):
         if head.position[0] + self.camera[0]/2 > self.board[0]:
@@ -213,6 +223,7 @@ class Game():
             pygame.draw.rect(self.window, body_part.color, make_rect(head_rect, my_head.position, body_part.position, body_part.width))
             
         self.show_leaderboard(game_data.leaderboard)
+        self.show_quit()
         pygame.display.flip()
 
     def get_direction(self):
@@ -232,6 +243,9 @@ class Game():
         while self.running:
             msg = None
             for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        menu()
                 if event.type == pygame.QUIT:
                     msg = pickle.dumps(comm.Message.QUIT)
                     self.running = False
@@ -267,6 +281,8 @@ class Game():
                 self.radio.play_sound(game_data.sound)
 
         pygame.quit()
+    
+  
         
 class MusicPlayer():
     def __init__(self, song):
@@ -287,7 +303,56 @@ class MusicPlayer():
         elif sound == comm.Message.SELF_COLLISION or sound == comm.Message.OTHER_COLLISION:
             self.self_collision.play()
 
-def main():
+def menu():
+    pygame.init()
+    screen = pygame.display.set_mode((500, 500))
+    pygame.display.set_caption("Main Menu")
+
+    #load button images
+    resume_img = pygame.image.load("images/button_resume.png").convert_alpha()
+    options_img = pygame.image.load("images/button_options.png").convert_alpha()
+    quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
+    back_img = pygame.image.load('images/button_back.png').convert_alpha()
+
+    #create button instances
+    resume_button = button.Button(304, 125, resume_img, 1)
+    options_button = button.Button(297, 250, options_img, 1)
+    quit_button = button.Button(336, 375, quit_img, 1)
+    back_button = button.Button(332, 450, back_img, 1)
+
+    game_over = True
+    menu_state = "main"
+    run = True
+    while run:
+        screen.fill((255,0,0))
+
+        #check if game is over (or hasn't begun yet)
+        if game_over == True:
+            #check menu state
+            if menu_state == "main":
+                #draw pause screen buttons
+                if resume_button.draw(screen):
+                    game_over = False
+                if options_button.draw(screen):
+                    menu_state = "options"
+                if quit_button.draw(screen):
+                    run = False
+            #check if the options menu is open
+            if menu_state == "options":
+                #draw the different options buttons
+                if back_button.draw(screen):
+                    menu_state = "main"
+            pygame.display.update()
+        else: #if user decided to start game/enter server
+            runclient()
+
+
+        
+
+    pygame.quit()
+    sys.exit()
+
+def runclient(): 
     
     client = Client()
     client.input_addr()
@@ -296,10 +361,21 @@ def main():
 
     radio = MusicPlayer(resource_path("sound/snake_hunt.mp3"))
     game = Game(client, radio)
+    
+    
+    
     PauseMenu(game)
 
     game.start()
     game.game_loop()
 
+def main():
+    menu()
+    
 if __name__ == '__main__':
     main()
+    
+    
+
+
+
