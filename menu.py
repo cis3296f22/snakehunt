@@ -1,6 +1,88 @@
 import pygame
 import button
 
+'''actions for buttons'''
+def quitGame(args=None):
+    pygame.quit()
+
+
+class MenuScreen():
+    def __init__(self, dimensions, buttons):
+        self.buttons = buttons
+        self.width = dimensions[0]
+        self.height = dimensions[1]
+        self.prev_s=None
+        self.next_s=None
+
+
+class Button():
+    def __init__(self, action=None, actionArgs=None, origin=(0,0), dimensions=(0,0), text_input=False):
+        self.action = action
+        self.args = actionArgs
+        self.x_root = origin[0]
+        self.y_root = origin[1]
+        self.x_bound = origin[0] + dimensions[0]
+        self.y_bound = origin[1] + dimensions[1]
+        self.rect = pygame.Rect(self.x_root, self.y_root, self.x_bound, self.y_bound)
+        self.input = text_input
+        self.text = None
+        self.unclick_color = (100,100,100)
+        self.clicked_color = (200,200,200)
+        
+        
+        
+    def draw(self, surface):
+        #draw base
+        pygame.draw(surface, (255,0,0), self.rect)
+
+        #if self.input, get self.text and display it
+
+    def checkClick(self, mousePos):
+        #check the location of the mouse click and perform the action if true
+        if self.rect.collidepoint(mousePos):
+            self.click()
+        return False
+
+    def click(self):
+        #called by checkClick, but maybe also elsewhere?
+        self.action(self.args)
+
+    
+    
+class Menu():
+
+
+    def __init__(self, surface):
+        self.screens = []
+        self.currentScreen = None
+        self.previousScreen = None
+        self.surface = surface
+        self.x, self.y, self.w, self.h = surface.get_rect()
+
+    def start(self):
+        #initialize
+        screen = display.blit(self.surface, self.dimensions)
+        #make all of the possible screens
+        exitButton = Button(action=quitGame, origin=( int(self.w - 40), int(self.y + 20), dimensions = ( 20,20 ) )
+        backButton = Button()
+        
+        main_s = MenuScreen(self.dimensions,
+                            Button(action= ),
+                            Button(),
+                            exitButton)
+        ip_s = None
+        single_s = None
+        name_s = None
+        start_s = None
+        pause_s = None
+        leader_board_s = None
+        
+        #display current screen
+
+        #wait for user input
+
+        #change current screen
+
 def menu():
     pygame.init()
 
