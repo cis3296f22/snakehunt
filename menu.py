@@ -1,151 +1,147 @@
 import pygame
-import button
-
-'''actions for buttons'''
-def quitGame(args=None):
-    pygame.quit()
-
-
-class MenuScreen():
-    def __init__(self, dimensions, buttons):
-        self.buttons = buttons
-        self.width = dimensions[0]
-        self.height = dimensions[1]
-        self.prev_s=None
-        self.next_s=None
 
 
 class Button():
-    def __init__(self, action=None, actionArgs=None, origin=(0,0), dimensions=(0,0), text_input=False):
-        self.action = action
-        self.args = actionArgs
-        self.x_root = origin[0]
-        self.y_root = origin[1]
-        self.x_bound = origin[0] + dimensions[0]
-        self.y_bound = origin[1] + dimensions[1]
-        self.rect = pygame.Rect(self.x_root, self.y_root, self.x_bound, self.y_bound)
-        self.input = text_input
-        self.text = None
-        self.unclick_color = (100,100,100)
-        self.clicked_color = (200,200,200)
-        
-        
-        
-    def draw(self, surface):
-        #draw base
-        pygame.draw(surface, (255,0,0), self.rect)
 
-        #if self.input, get self.text and display it
+    def __init__(self, text_color, background_color,rect, font, text, screen, state):
 
-    def checkClick(self, mousePos):
-        #check the location of the mouse click and perform the action if true
-        if self.rect.collidepoint(mousePos):
-            self.click()
-        return False
+        self.text = text
+        self.font = font
+        self.background_color = background_color
+        self.text_color = text_color
+        self.width = rect[2]
+        self.height = rect[3]
+        self.rect = pygame.Rect(rect)
+        self.origin = (rect[0], rect[1])
+        self.clicked = False
+        self.background = pygame.Surface((self.width, self.height))
+        self.screen = screen
+        self.return_state = state
 
-    def click(self):
-        #called by checkClick, but maybe also elsewhere?
-        self.action(self.args)
+
+    def check(self, pos):
+        if self.rect.collidepoint(pos):
+            return self.return_state
+
+    def draw(self):
+
+        #draw background
+        self.background.fill(self.background_color)
+
+        #img is the surface holding the text only, to be placed on the background of the button
+        words = self.font.render(self.text, True, self.text_color)
+
+        #place the image on the background
+        self.background.blit(words, (0,0))
+
+        #place the button on the display surface
+        self.screen.blit(self.background, self.origin)
 
     
     
-class Menu():
+class MenuScreen():
 
-
-    def __init__(self, surface):
-        self.screens = []
-        self.currentScreen = None
-        self.previousScreen = None
-        self.surface = surface
-        self.x, self.y, self.w, self.h = surface.get_rect()
-
-    def start(self):
-        #initialize
-        screen = display.blit(self.surface, self.dimensions)
-        #make all of the possible screens
-        exitButton = Button(action=quitGame, origin=( int(self.w - 40), int(self.y + 20), dimensions = ( 20,20 ) )
-        backButton = Button()
+    def __init__(self, screen,background_color, edge_offset, state):
+        self.screen = screen
+        self.background_color = background_color
+        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
+        self.menu_state = state
+        self.buttons = None
+        self.edge_offset = edge_offset
         
-        main_s = MenuScreen(self.dimensions,
-                            Button(action= ),
-                            Button(),
-                            exitButton)
-        ip_s = None
-        single_s = None
-        name_s = None
-        start_s = None
-        pause_s = None
-        leader_board_s = None
+    def set_buttons(self, buttons):
+        self.buttons = buttons
         
-        #display current screen
 
-        #wait for user input
+    def draw(self):
+        self.background.fill(self.background_color)
+        self.screen.blit(self.background, (self.edge_offset,self.edge_offset))
+        for button in self.buttons:
+            button.draw()
 
-        #change current screen
+    def check(self, pos):
+        for button in self.buttons:
+            if button.check(pos):
+                return button.return_state
+        return self.menu_state
+    
 
-def menu():
+def test():
+    
+    #start pygame
     pygame.init()
 
     #create game window
     SCREEN_WIDTH = 800
     SCREEN_HEIGHT = 600
-
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Main Menu")
 
-    #game variables
+    #variables NOTE: some things, like font, need to be built after a display
+    font = pygame.font.SysFont("signpainter", 40)
     game_paused = False
-    menu_state = "main"
+    game_state = "play"
+    TEXT_COL = (255, 255, 255)
+    BKGRD_COL = (100,100,100)
+    run = True
 
-    #load button images
-    resume_img = pygame.image.load("images/button_resume.png").convert_alpha()
-    options_img = pygame.image.load("images/button_options.png").convert_alpha()
-    quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
-    back_img = pygame.image.load('images/button_back.png').convert_alpha()
+    #make banner
+    banner_text = "Press SPACE to pause"
+    banner_pos = (100, 100)
+    banner_words = font.render(banner_text, True, TEXT_COL)
+    
 
-    #create button instances
-    resume_button = button.Button(304, 125, resume_img, 1)
-    options_button = button.Button(297, 250, options_img, 1)
-    quit_button = button.Button(336, 375, quit_img, 1)
-    back_button = button.Button(332, 450, back_img, 1)
+    #make buttons
+    '''
+    Button(text_color, background_color, (rectangle_of_button), font, display_text)
+    Menu(screen,background_color, edge_offset, state)
+    '''
+    pause_menu = MenuScreen(screen, (150,150,150), 50, "pause")
+    resume_button = Button(TEXT_COL, (200,200,200), (100,90,100,100), font, "resume", screen, "play")
+    quit_button = Button(TEXT_COL, (200,200,200), (210,90,200,100), font, "quit", screen, "quit")
+    pause_menu.set_buttons((resume_button, quit_button))
+
+    quitting = Button(TEXT_COL, BKGRD_COL, (50,50,SCREEN_WIDTH-100,SCREEN_HEIGHT-100), font, "quitting", screen, "quitting")
 
     #menu loop
-    run = True
-    while run:
+    while run is True:
 
         screen.fill((255,0,0))
 
-        #check if game is paused
-        if game_paused == True:
-            #check menu state
-            if menu_state == "main":
-                #draw pause screen buttons
-                if resume_button.draw(screen):
-                    game_paused = False
-                if options_button.draw(screen):
-                    menu_state = "options"
-                if quit_button.draw(screen):
-                    run = False
-            #check if the options menu is open
-            if menu_state == "options":
-                #draw the different options buttons
-                if back_button.draw(screen):
-                    menu_state = "main"
-        else:
-            print("Press ESCAPE to pause")
+        #get position of the mouse and if it was clicked
+        pos = pygame.mouse.get_pos()
+        clicked = True if pygame.mouse.get_pressed()[0] == 1 else False
 
         #event handler
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    game_paused = True
+                if event.key == pygame.K_SPACE:
+                    game_state = "pause"
             if event.type == pygame.QUIT:
                 run = False
 
-        pygame.display.update()
+        #check for state to display menus
+        if game_state == "play":
+            screen.blit(banner_words, (0,0))
 
+        elif game_state == "pause":
+            pause_menu.draw()
+            if clicked:
+                game_state = pause_menu.check(pos)
+
+        elif game_state == "quit":
+            quitting.draw()
+            run = False
+
+            
+        print(game_state)
+        pygame.display.flip()
+
+
+    pygame.event.get()
     pygame.quit()
 
+
 if __name__ == '__main__':
-    menu()
+    test()
     
