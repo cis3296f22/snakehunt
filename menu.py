@@ -1,12 +1,69 @@
+
 import pygame
 
-
+#basic to InputDisplay objects.  can be replaced
 ALLOWED_CHARS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', \
                  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', \
                  '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', \
                  ]
 
+#basic to SnakeBanner objects.  can be replaced
+POINTS = [(6,0), (6,1), (6,2), (5,2), (5,1), (4,1), (3,1), (2,1), (1,1), \
+          (1,2), (1,3), (1,4), (1,5), \
+          (2,5), (3,5), (4,5), (5,5),  \
+          (5,6), (5,7), (5,8), (5,9), \
+          (4,9), (3,9), (2,9), (1,9), (1,8), (0,8),\
+          \
+          (13,5), (12,5), (11,5), \
+          (11,6), (12,6), (12,7), (12,8), (12,9), \
+          (11,9), (10,9), (9,9), (8,9), \
+          (8,8), (8,7), (8,6), (8,5), (8,4), (8,3), (8,2), (8,1), \
+          (9,1), (10,1), (11,1), (12,1), (12,2), (13,2)
+          ] 
+          
 
+
+class SnakeBanner():
+
+    def __init__(self, screen,background_color, edge_offset, points, xblocks, yblocks):
+        self.screen = screen
+        self.background_color = background_color
+        self.head = 0
+        self.tail = 1
+        self.points = points
+        self.length = len(points)
+        self.edge_offset = edge_offset
+        self.mainColor = (50, 200, 50)
+        self.headColor = (225, 225, 100)
+        self.gap = 5
+        
+        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
+        self.blockWidth = int(self.background.get_width()/xblocks)
+        self.blockHeight = int(self.background.get_height()/yblocks)
+##        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
+
+
+
+        
+    def draw(self):
+        #draw background
+        self.background.fill(self.background_color)
+        x = self.blockWidth
+        y = self.blockHeight
+        off = self.gap
+
+        for block in self.points:
+            pygame.draw.rect(self.background, self.mainColor, (block[0]*x+off, block[1]*y+off, x-off, y-off))
+        pygame.draw.rect(self.background, self.headColor, (self.points[self.head][0]*x+off, self.points[self.head][1]*y+off, x-off,y-off))
+        for i in range(1, 4):
+            tail = self.points[(self.head + i)%self.length]
+            rect = (tail[0]*x+off, tail[1]*y+off, x-off,y-off)
+            pygame.draw.rect(self.background, self.background_color, rect)
+        self.head = (self.head + 1) % self.length
+        
+
+        #place the button on the display surface
+        self.screen.blit(self.background, (self.edge_offset,self.edge_offset))
 
 class MenuScreen():
 
@@ -93,7 +150,9 @@ class InputDisplay(Element):
     def check(self, pos):
         if self.rect.collidepoint(pos):
             if self.firstRun:
+                self.firstRun = False
                 self.text = ""
+                
             return self.return_state
 
     def addChar(self, char):
@@ -134,7 +193,7 @@ class InputDisplay(Element):
     
 
 def test():
-    
+
     #start pygame
     pygame.init()
 
@@ -162,7 +221,9 @@ def test():
     '''
     Button(text, font, text_color, background_color, rect, screen, state)
     Menu(screen,background_color, edge_offset, state)
+    SnakeBanner(screen,background_color, edge_offset, points)
     '''
+    snake_banner = SnakeBanner(screen, (0,0,0), 10, POINTS, 14, 10)
     pause_menu = MenuScreen(screen, (150,150,150), 50, "pause")
     resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "play")
     quit_button = Button("quit", font, TEXT_COL, (200,200,200), (210,90,100,100), screen, "quit")
@@ -196,7 +257,10 @@ def test():
 
         #check for state to display menus
         if game_state == "play":
-            screen.blit(banner_words, (0,0))
+            #screen.blit(banner_words, (0,0))
+            clock.tick(15)
+            snake_banner.draw()
+            
 
         elif game_state == "pause":
             pause_menu.draw()
@@ -221,7 +285,7 @@ def test():
         
         print(game_state)
         pygame.display.flip()
-        clock.tick(30)
+        
 
 
     pygame.event.get()
