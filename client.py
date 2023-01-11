@@ -14,9 +14,10 @@ import sys
 # Imports from local modules
 from gamedata import *
 import comm
-import button
+import menu
+from menu import *
 
-root = Tk()
+#root = Tk()
 
 # Find the full path of 'relative_path'
 # If we are running the code directly, the current dir joined with 'relative_path' is the full path
@@ -33,18 +34,50 @@ class Client():
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def input_addr(self):
-        server_ip = input("Enter server IP: ")
-        server_port = input("Enter server port: ")
-        self.addr = (server_ip, int(server_port))
+    def input_addr(self, ip, port):
+##        server_ip = input("Enter server IP: ")
+##        server_port = input("Enter server port: ")
+        self.addr = (ip, int(port))
 
-    def connect(self):
+    def connect(self, ip, port):
+        if ip == None or port == None or len(ip) == 0 or len(port)==0:
+            print("must input ip and port")
+            return False
+        self.addr = (ip, int(port))
         try:
             self.socket.connect(self.addr)
             return True
         except:
             print('Connection failed')
             return False
+
+    def receive_name_feedback(self):
+        feedback_size_bytes = comm.receive_data(self.socket, comm.MSG_LEN)
+        feedback_size = comm.to_int(feedback_size_bytes)
+        feedback = pickle.loads(comm.receive_data(self.socket, feedback_size))
+
+        if feedback == comm.Message.NAME_OK:
+            print("name is ok")
+        elif feedback == comm.Message.NAME_TOO_LONG:
+            size_bytes = comm.receive_data(socket, comm.MSG_LEN)
+            size = comm.to_int(size_bytes)
+            max_name_length = pickle.loads(comm.receive_data(socket, size))
+            self.name_feedback.config(text=f"Max name length is {max_name_length} characters.")
+        elif feedback == comm.Message.NAME_USED:
+            self.name_feedback.config(text=f"Name taken, please select another name.")
+
+    def send_name(self, name):
+        if name == None or len(name) == 0:
+            print("invalid name")
+            return
+        name = pickle.dumps(name)
+        size = comm.size_as_bytes(name)
+        comm.send_data(socket, size)
+        comm.send_data(socket, name)
+
+        self.receive_name_feedback()
+
+    
 
 class PauseMenu:
     def __init__(self, game):
@@ -121,7 +154,6 @@ class Game():
         self.radio = radio
         self.leaderboard_font = pygame.font.Font(resource_path('./fonts/arial_bold.ttf'), 10)
 
-
     def start(self):
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
         flags = DOUBLEBUF
@@ -137,7 +169,6 @@ class Game():
             self.window.blit(record, record_rect)
             top += 13
         
-            
     def show_quit(self):
         quit_string = 'Press ESC to quit'
         quitmsg = self.leaderboard_font.render(quit_string, True, (255, 255, 255))
@@ -145,7 +176,6 @@ class Game():
         quit_rect.topleft = (410, 8)
         self.window.blit(quitmsg, quit_rect)
         
-
     def render_bounds(self, head):
         if head.position[0] + self.camera[0]/2 > self.board[0]:
             off_map_width = (head.position[0] + self.camera[0]/2 - self.board[0])
@@ -287,7 +317,8 @@ class Game():
 class MusicPlayer():
     def __init__(self, song):
         pygame.mixer.init()
-        
+
+        #this could be generalized and made into a dictionary for each file so that more sounds could be added without affecting this class
         self.pellet_sound = pygame.mixer.Sound(resource_path("sound/pellet_sound.mp3"))
         self.self_collision = pygame.mixer.Sound(resource_path("sound/self_collision.mp3"))
 ##        self.other_collision = pygame.mixer.Sound()
@@ -295,6 +326,7 @@ class MusicPlayer():
         
     def play_song(self, song):
         pygame.mixer.music.load(song)
+        #provide -1 so the song will loop
         pygame.mixer.music.play(-1)
 
     def play_sound(self, sound):
@@ -303,74 +335,240 @@ class MusicPlayer():
         elif sound == comm.Message.SELF_COLLISION or sound == comm.Message.OTHER_COLLISION:
             self.self_collision.play()
 
-def menu():
+def main():
+
+    #start pygame
     pygame.init()
-    screen = pygame.display.set_mode((500, 500))
+
+    #start the music
+    radio = MusicPlayer(resource_path("sound/snake_hunt.mp3"))
+
+    #create game window
+    SCREEN_WIDTH = 800
+    SCREEN_HEIGHT = 800
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Main Menu")
 
-    #load button images
-    resume_img = pygame.image.load("images/button_resume.png").convert_alpha()
-    options_img = pygame.image.load("images/button_options.png").convert_alpha()
-    quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
-    back_img = pygame.image.load('images/button_back.png').convert_alpha()
-
-    #create button instances
-    resume_button = button.Button(304, 125, resume_img, 1)
-    options_button = button.Button(297, 250, options_img, 1)
-    quit_button = button.Button(336, 375, quit_img, 1)
-    back_button = button.Button(332, 450, back_img, 1)
-
-    game_over = True
-    menu_state = "main"
+    #variables NOTE: some things, like font, need to be built after a display
+    font = pygame.font.SysFont("signpainter", 40)
+    game_paused = False
+    game_state = "title"
+    TEXT_COL = (255, 255, 255)
+    BUTTON_COL = (200,200,200)
+    BKGD_COL = (100,100,100)
     run = True
-    while run:
+    name = None
+    ip = None
+    port = None
+    connected = False
+
+    #make banner, menu, and elements
+    '''
+    SnakeBanner(screen,background_color, edge_offset,  points, xblocks, yblocks)
+    Button(text, font, text_color, background_color, rect, screen, state)
+    Menu(screen,background_color, edge_offset, state)
+
+    '''
+    #title
+    snake_banner = SnakeBanner(screen, BKGD_COL, 10, POINTS, 14, 10)
+    #menu
+    pause_menu = MenuScreen(screen, (150,150,150), 50, "menu")
+    #buttons
+    title_button = Button("title", font, TEXT_COL, BUTTON_COL,              (100, 90, 100, 50), screen, "title")
+    quit_button = Button("quit", font, TEXT_COL, BUTTON_COL,                (410, 90, 100, 50), screen, "quit")
+    connect_button = Button("connect", font, TEXT_COL, BUTTON_COL,          (410, 260, 200, 50), screen, "connecting")
+    name_checking_button = Button("check name", font, TEXT_COL, BUTTON_COL, (410, 400, 200, 50), screen, "name_checking")
+    #inputs
+    input_port = InputDisplay("port", font, TEXT_COL, BUTTON_COL, (100, 200, 200, 50), screen, "port_input", maxLen = 4,allowedChars= ['0','1','2','3','4','5','6','7','8','9'])
+    input_ip = InputDisplay("ip", font, TEXT_COL, BUTTON_COL,     (100, 260, 200, 50), screen, "ip_input", maxLen = 15, allowedChars=['0','1','2','3','4','5','6','7','8','9','.'])
+    input_name = InputDisplay("name", font, TEXT_COL, BUTTON_COL, (100, 400, 200, 50), screen, "name_input", maxLen = 10)
+
+
+
+    #fill the pause menu with buttons
+    pause_menu.set_elements((title_button, quit_button, input_name, input_ip, input_port, connect_button, name_checking_button))
+
+    #place holder because it takes like 10 seconds to quit lol
+    quitting = Button("quitting", font, TEXT_COL, BKGD_COL, (50,50,SCREEN_WIDTH-100,SCREEN_HEIGHT-100), screen, "quitting")
+
+    #make a client
+    client = Client()
+
+    #start the clock
+    clock = pygame.time.Clock()
+    
+    #main loop
+    while run is True:
+
+        #make background full red
         screen.fill((255,0,0))
 
-        #check if game is over (or hasn't begun yet)
-        if game_over == True:
-            #check menu state
-            if menu_state == "main":
-                #draw pause screen buttons
-                if resume_button.draw(screen):
-                    game_over = False
-                if options_button.draw(screen):
-                    menu_state = "options"
-                if quit_button.draw(screen):
-                    run = False
-            #check if the options menu is open
-            if menu_state == "options":
-                #draw the different options buttons
-                if back_button.draw(screen):
-                    menu_state = "main"
-            pygame.display.update()
-        else: #if user decided to start game/enter server
-            runclient()
+        #get position of the mouse and if it was clicked
+        pos = pygame.mouse.get_pos()
+        clicked = True if pygame.mouse.get_pressed()[0] == 1 else False
 
+        #input character for the input
+        inputChar = 0
 
+        #event handler
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and game_state == "title":
+                    game_state = "menu"
+                else:
+                    inputChar = event.key
+            if event.type == pygame.QUIT:
+                run = False
+
+        #check for state to display menus
+        if game_state == "title":
+            #screen.blit(banner_words, (0,0))
+            clock.tick(15)
+            snake_banner.draw()
+            
+        #main menu
+        elif game_state == "menu":
+            pause_menu.draw()
+            if clicked:
+                game_state = pause_menu.check(pos)
+
+        elif game_state == "quit":
+            quitting.draw()
+            run = False
+
+        #each of the inputs
+        elif game_state == "ip_input":
+            pause_menu.draw()
+            if clicked:
+                game_state = pause_menu.check(pos)
+            if inputChar == pygame.K_BACKSPACE:
+                input_ip.removeChar()
+            else:
+                input_ip.addChar(inputChar)
+                ip = input_ip.text
+                print("ip: ", ip)
+
+            
+        elif game_state == "port_input":
+            pause_menu.draw()
+            if clicked:
+                game_state = pause_menu.check(pos)
+            if inputChar == pygame.K_BACKSPACE:
+                input_port.removeChar()
+            else:
+                input_port.addChar(inputChar)
+                port = input_port.text
+                print("port: ", port)
+
+        elif game_state == "connecting":
+            pause_menu.draw()
+            #connection works, get the name of the user
+            if client.connect(ip, port):
+                game_state = "name_input"
+                connected = True
+            else:
+                game_state = "menu"
+                print("connection failed")
+
+            
+        elif game_state == "name_input":
+            pause_menu.draw()
+            if clicked:
+                game_state = pause_menu.check(pos)
+            if inputChar == pygame.K_BACKSPACE:
+                input_name.removeChar()
+            else:
+                input_name.addChar(inputChar)
+                name = input_name.text
+                print("name: ", name)
+
+        elif game_state == "name_checking":
+            pause_menu.draw()
+            if connected:
+                if client.check_name(name):
+                    game_state = "play"
+                else:
+                    game_state = "menu"
+                    print("name already taken")
+            else:
+                game_state = "menu"
+                print("cannot enter name, not yet connected to the server")
+
+        elif game_state == "play":
+            game = game(client, radio)
+            game.start()
+            game.game_loop()
         
 
+        print(game_state)
+        pygame.display.flip()
+        
+    pygame.event.get()
     pygame.quit()
-    sys.exit()
 
-def runclient(): 
+
+    
+##    pygame.init()
+##    screen = pygame.display.set_mode((800, 800))
+##    pygame.display.set_caption("Main Menu")
+
+    #load button images
+##    resume_img = pygame.image.load("images/button_resume.png").convert_alpha()
+##    options_img = pygame.image.load("images/button_options.png").convert_alpha()
+##    quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
+##    back_img = pygame.image.load('images/button_back.png').convert_alpha()
+
+    #create button instances
+##    resume_button = button.Button(304, 125, resume_img, 1)
+##    options_button = button.Button(297, 250, options_img, 1)
+##    quit_button = button.Button(336, 375, quit_img, 1)
+##    back_button = button.Button(332, 450, back_img, 1)
+
+##    game_over = True
+##    menu_state = "main"
+##    run = True
+##    while run:
+##        screen.fill((255,0,0))
+##
+##        #check if game is over (or hasn't begun yet)
+##        if game_over == True:
+##            #check menu state
+##            if menu_state == "main":
+##                #draw pause screen buttons
+##                if resume_button.draw(screen):
+##                    game_over = False
+##                if options_button.draw(screen):
+##                    menu_state = "options"
+##                if quit_button.draw(screen):
+##                    run = False
+##            #check if the options menu is open
+##            if menu_state == "options":
+##                #draw the different options buttons
+##                if back_button.draw(screen):
+##                    menu_state = "main"
+##            pygame.display.update()
+##        else: #if user decided to start game/enter server
+##            runclient()
+##
+##
+##        
+##
+##    pygame.quit()
+##    sys.exit()
+##
+def runclient(ip=None, port=None, name=None): 
     
     client = Client()
     client.input_addr()
     if not client.connect():
         return
 
-    radio = MusicPlayer(resource_path("sound/snake_hunt.mp3"))
     game = Game(client, radio)
     
-    
-    
-    PauseMenu(game)
+    #PauseMenu(game)
 
     game.start()
     game.game_loop()
-
-def main():
-    menu()
     
 if __name__ == '__main__':
     main()

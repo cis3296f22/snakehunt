@@ -35,11 +35,14 @@ class SnakeBanner():
         self.edge_offset = edge_offset
         self.mainColor = (50, 200, 50)
         self.headColor = (225, 225, 100)
-        self.gap = 5
+        self.gap = 4
         
-        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
-        self.blockWidth = int(self.background.get_width()/xblocks)
-        self.blockHeight = int(self.background.get_height()/yblocks)
+        bkgd_width = screen.get_width() - edge_offset*2
+        self.blockWidth = int(bkgd_width/xblocks)
+        self.blockHeight = self.blockWidth
+        self.background = pygame.Surface((bkgd_width - self.gap, self.blockWidth*yblocks + self.gap))
+
+
 ##        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
 
 
@@ -72,13 +75,23 @@ class MenuScreen():
         self.background_color = background_color
         self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
         self.menu_state = state
-        self.elements = None
+        self.elements = []
         self.edge_offset = edge_offset
         
-    def set_buttons(self, elements):
+    def set_elements(self, elements):
         self.elements = elements
-        
 
+    def add_elements(self, elements):
+        for element in elements:
+            self.elements.append(element)
+
+    def remove_element(self, element_to_remove):
+        for element in self.elements:
+            if element == element_to_remove:
+                self.elements.remove(element)
+                return True
+        return False
+    
     def draw(self):
         self.background.fill(self.background_color)
         self.screen.blit(self.background, (self.edge_offset,self.edge_offset))
@@ -136,12 +149,12 @@ class Button(Element):
 
 class InputDisplay(Element):
 
-    def __init__(self, text, font, text_color, background_color, rect, screen, maxLen = 5, allowedChars=None):
+    def __init__(self, text, font, text_color, background_color, rect, screen, state, maxLen = 5, allowedChars=None):
         super().__init__(text, font, text_color, background_color, rect, screen)
         self.maxLen = maxLen
         self.allowedChars = []
         self.firstRun = True
-        self.return_state = "input"
+        self.return_state = state
         if allowedChars is not None:
             self.allowedChars = allowedChars
         else:
@@ -199,7 +212,7 @@ def test():
 
     #create game window
     SCREEN_WIDTH = 800
-    SCREEN_HEIGHT = 600
+    SCREEN_HEIGHT = 800
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Main Menu")
 
@@ -227,8 +240,8 @@ def test():
     pause_menu = MenuScreen(screen, (150,150,150), 50, "pause")
     resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "play")
     quit_button = Button("quit", font, TEXT_COL, (200,200,200), (210,90,100,100), screen, "quit")
-    input_ele = InputDisplay("name", font, TEXT_COL, (200,200,200), (100, 200, 200, 50), screen, maxLen = 10)
-    pause_menu.set_buttons((resume_button, quit_button, input_ele))
+    input_ele = InputDisplay("name", font, TEXT_COL, (200,200,200), (100, 200, 200, 50), screen, "input", maxLen = 10)
+    pause_menu.set_elements((resume_button, quit_button, input_ele))
 
     quitting = Button("quitting", font, TEXT_COL, BKGRD_COL, (50,50,SCREEN_WIDTH-100,SCREEN_HEIGHT-100), screen, "quitting")
 
