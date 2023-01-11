@@ -82,11 +82,13 @@ class Server():
                 comm.send_data(player.socket, max_length)
 
     def receive_input(self, player):
+        
         while self.game.running:
             try:
                 input_size_as_bytes = comm.receive_data(player.socket, comm.MSG_LEN)
                 input_size = comm.to_int(input_size_as_bytes)
                 input = pickle.loads(comm.receive_data(player.socket, input_size))
+                print(input)
             except:
                 self.game.remove_player(player)
                 break

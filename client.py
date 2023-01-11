@@ -31,6 +31,7 @@ def resource_path(relative_path):
     return os.path.join(base, relative_path)
 
 class Client():
+    
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -51,31 +52,46 @@ class Client():
             print('Connection failed')
             return False
 
+    def check_name(self, name):
+        if name == None or len(name) == 0:
+            print("invalid name: empty")
+            return False
+        
+
+        
+        if self.send_name(name):
+            print("name is ok")
+            return True
+        else:
+            print("bad name")
+            return False
+
     def receive_name_feedback(self):
         feedback_size_bytes = comm.receive_data(self.socket, comm.MSG_LEN)
         feedback_size = comm.to_int(feedback_size_bytes)
         feedback = pickle.loads(comm.receive_data(self.socket, feedback_size))
 
         if feedback == comm.Message.NAME_OK:
-            print("name is ok")
+            print("name is ok from the horse's mouth")
+            return True
+        
         elif feedback == comm.Message.NAME_TOO_LONG:
             size_bytes = comm.receive_data(socket, comm.MSG_LEN)
             size = comm.to_int(size_bytes)
             max_name_length = pickle.loads(comm.receive_data(socket, size))
-            self.name_feedback.config(text=f"Max name length is {max_name_length} characters.")
+            print("max name length: ", max_name_length)
+            return False
         elif feedback == comm.Message.NAME_USED:
-            self.name_feedback.config(text=f"Name taken, please select another name.")
+            print("name already taken")
+            return False
 
     def send_name(self, name):
-        if name == None or len(name) == 0:
-            print("invalid name")
-            return
         name = pickle.dumps(name)
         size = comm.size_as_bytes(name)
-        comm.send_data(socket, size)
-        comm.send_data(socket, name)
+        comm.send_data(self.socket, size)
+        comm.send_data(self.socket, name)
 
-        self.receive_name_feedback()
+        return self.receive_name_feedback()
 
     
 
@@ -405,13 +421,16 @@ def main():
 
         #get position of the mouse and if it was clicked
         pos = pygame.mouse.get_pos()
-        clicked = True if pygame.mouse.get_pressed()[0] == 1 else False
+        clicked = False
 
         #input character for the input
         inputChar = 0
 
         #event handler
         for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if pygame.mouse.get_pressed()[0] == 1:
+                    clicked = True
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and game_state == "title":
                     game_state = "menu"
@@ -464,7 +483,8 @@ def main():
             pause_menu.draw()
             #connection works, get the name of the user
             if client.connect(ip, port):
-                game_state = "name_input"
+                print("connection success")
+                game_state = "menu"
                 connected = True
             else:
                 game_state = "menu"
@@ -487,6 +507,7 @@ def main():
             if connected:
                 if client.check_name(name):
                     game_state = "play"
+                    print("game state is now connected")
                 else:
                     game_state = "menu"
                     print("name already taken")
@@ -494,13 +515,14 @@ def main():
                 game_state = "menu"
                 print("cannot enter name, not yet connected to the server")
 
-        elif game_state == "play":
-            game = game(client, radio)
+        if game_state == "play":
+            game = Game(client, radio)
             game.start()
             game.game_loop()
         
 
         print(game_state)
+        print("clicked: ", clicked)
         pygame.display.flip()
         
     pygame.event.get()
