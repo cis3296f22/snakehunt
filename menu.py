@@ -14,18 +14,20 @@ POINTS = [(6,0), (6,1), (6,2), (5,2), (5,1), (4,1), (3,1), (2,1), (1,1), \
           (5,6), (5,7), (5,8), (5,9), \
           (4,9), (3,9), (2,9), (1,9), (1,8), (0,8),\
           \
-          (13,5), (12,5), (11,5), \
-          (11,6), (12,6), (12,7), (12,8), (12,9), \
-          (11,9), (10,9), (9,9), (8,9), \
-          (8,8), (8,7), (8,6), (8,5), (8,4), (8,3), (8,2), (8,1), \
-          (9,1), (10,1), (11,1), (12,1), (12,2), (13,2)
+          (8,10), (8,9), (8,8), (8,7), (8,6), \
+          (9,6), (10,6), (11,6), (12,6), \
+          (12,7), (12,8), (12,9), \
+          (13,9), (13,8), (13,7), (13,6), (13,5), (13,4), (13,3),(13,2), (13,1), \
+          (12,1), (12,2), (12,3), (12, 4),(12,5), \
+          (11,5), (10,5), (9,5), (8,5), \
+          (8,4), (8,3), (8,2), (8,1), (8,0)
           ] 
           
 
 
 class SnakeBanner():
 
-    def __init__(self, screen,background_color, edge_offset, points, xblocks, yblocks):
+    def __init__(self, screen,background_color, edge_offset, points, xblocks, yblocks, font):
         self.screen = screen
         self.background_color = background_color
         self.head = 0
@@ -41,6 +43,9 @@ class SnakeBanner():
         self.blockWidth = int(bkgd_width/xblocks)
         self.blockHeight = self.blockWidth
         self.background = pygame.Surface((bkgd_width - self.gap, self.blockWidth*yblocks + self.gap))
+        #Element(text, font, text_color, background_color, rect, screen)
+        self.press_start = Element("press space to start", font, (200,200,200), (background_color), (250, 600, 265, 45), screen)
+
 
 
 ##        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
@@ -50,6 +55,7 @@ class SnakeBanner():
         
     def draw(self):
         #draw background
+        self.press_start.draw()
         self.background.fill(self.background_color)
         x = self.blockWidth
         y = self.blockHeight
@@ -119,6 +125,19 @@ class Element:
         self.background = pygame.Surface((self.width, self.height))
         self.screen = screen
 
+    def draw(self):
+
+        #draw background
+        self.background.fill(self.background_color)
+
+        #img is the surface holding the text only, to be placed on the background of the button
+        words = self.font.render(self.text, True, self.text_color)
+
+        #place the image on the background
+        self.background.blit(words, (0,0))
+
+        #place the button on the display surface
+        self.screen.blit(self.background, self.origin)
 
 class Button(Element):
 
@@ -236,7 +255,7 @@ def test():
     Menu(screen,background_color, edge_offset, state)
     SnakeBanner(screen,background_color, edge_offset, points)
     '''
-    snake_banner = SnakeBanner(screen, (0,0,0), 10, POINTS, 14, 10)
+    snake_banner = SnakeBanner(screen, (0,0,0), 10, POINTS, 14, 10, font)
     pause_menu = MenuScreen(screen, (150,150,150), 50, "pause")
     resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "play")
     quit_button = Button("quit", font, TEXT_COL, (200,200,200), (210,90,100,100), screen, "quit")

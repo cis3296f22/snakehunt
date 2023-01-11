@@ -386,7 +386,7 @@ def main():
 
     '''
     #title
-    snake_banner = SnakeBanner(screen, BKGD_COL, 10, POINTS, 14, 10)
+    snake_banner = SnakeBanner(screen, BKGD_COL, 10, POINTS, 14, 10, font)
     #menu
     pause_menu = MenuScreen(screen, (150,150,150), 50, "menu")
     #buttons
