@@ -238,7 +238,7 @@ def test():
     #variables NOTE: some things, like font, need to be built after a display
     font = pygame.font.SysFont("signpainter", 40)
     game_paused = False
-    game_state = "play"
+    game_state = "title"
     TEXT_COL = (255, 255, 255)
     BKGRD_COL = (100,100,100)
     run = True
@@ -257,7 +257,7 @@ def test():
     '''
     snake_banner = SnakeBanner(screen, (0,0,0), 10, POINTS, 14, 10, font)
     pause_menu = MenuScreen(screen, (150,150,150), 50, "pause")
-    resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "play")
+    resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "title")
     quit_button = Button("quit", font, TEXT_COL, (200,200,200), (210,90,100,100), screen, "quit")
     input_ele = InputDisplay("name", font, TEXT_COL, (200,200,200), (100, 200, 200, 50), screen, "input", maxLen = 10)
     pause_menu.set_elements((resume_button, quit_button, input_ele))
@@ -280,7 +280,7 @@ def test():
         #event handler
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and game_state == "play":
+                if event.key == pygame.K_SPACE and game_state == "title":
                     game_state = "pause"
                 else:
                     inputChar = event.key
@@ -288,7 +288,7 @@ def test():
                 run = False
 
         #check for state to display menus
-        if game_state == "play":
+        if game_state == "title":
             #screen.blit(banner_words, (0,0))
             clock.tick(15)
             snake_banner.draw()
