@@ -46,13 +46,6 @@ class SnakeBanner():
         #Element(text, font, text_color, background_color, rect, screen)
         self.press_start = Element("press space to start", font, (200,200,200), (background_color), (250, 600, 265, 45), screen)
 
-
-
-##        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
-
-
-
-        
     def draw(self):
         #draw background
         self.press_start.draw()
@@ -151,21 +144,6 @@ class Button(Element):
         if self.rect.collidepoint(pos):
             return self.return_state
 
-    # def draw(self):
-
-    #     #draw background
-    #     self.background.fill(self.background_color)
-
-    #     #img is the surface holding the text only, to be placed on the background of the button
-    #     words = self.font.render(self.text, True, self.text_color)
-
-    #     #place the image on the background
-    #     self.background.blit(words, (0,0))
-
-    #     #place the button on the display surface
-    #     self.screen.blit(self.background, self.origin)
-
-
 class InputDisplay(Element):
 
     def __init__(self, text, font, text_color, background_color, rect, screen, state, maxLen = 5, allowedChars=None):
@@ -206,26 +184,6 @@ class InputDisplay(Element):
         if char in self.allowedChars:
             return True
         return False
-
-    # def draw(self):
-
-    #     #draw background
-    #     self.background.fill(self.background_color)
-
-    #     #img is the surface holding the text only, to be placed on the background of the button
-    #     words = self.font.render(self.text, True, self.text_color)
-
-    #     #place the image on the background
-    #     self.background.blit(words, (0,0))
-
-    #     #place the button on the display surface
-    #     self.screen.blit(self.background, self.origin)
-
-
-    
-    
-        
-    
 
 def test():
 
