@@ -130,7 +130,7 @@ class Element:
         #draw background
         self.background.fill(self.background_color)
 
-        #img is the surface holding the text only, to be placed on the background of the button
+        #words is the surface holding the text only, to be placed on the background of the button
         words = self.font.render(self.text, True, self.text_color)
 
         #place the image on the background
@@ -151,19 +151,19 @@ class Button(Element):
         if self.rect.collidepoint(pos):
             return self.return_state
 
-    def draw(self):
+    # def draw(self):
 
-        #draw background
-        self.background.fill(self.background_color)
+    #     #draw background
+    #     self.background.fill(self.background_color)
 
-        #img is the surface holding the text only, to be placed on the background of the button
-        words = self.font.render(self.text, True, self.text_color)
+    #     #img is the surface holding the text only, to be placed on the background of the button
+    #     words = self.font.render(self.text, True, self.text_color)
 
-        #place the image on the background
-        self.background.blit(words, (0,0))
+    #     #place the image on the background
+    #     self.background.blit(words, (0,0))
 
-        #place the button on the display surface
-        self.screen.blit(self.background, self.origin)
+    #     #place the button on the display surface
+    #     self.screen.blit(self.background, self.origin)
 
 
 class InputDisplay(Element):
@@ -188,7 +188,10 @@ class InputDisplay(Element):
             return self.return_state
 
     def addChar(self, char):
-        char = chr(char)
+        try:
+            char = chr(char)
+        except:
+            pass
         if len(self.text) + 1 > self.maxLen:
             return self.text
         if self.validateChar(char):
@@ -204,19 +207,19 @@ class InputDisplay(Element):
             return True
         return False
 
-    def draw(self):
+    # def draw(self):
 
-        #draw background
-        self.background.fill(self.background_color)
+    #     #draw background
+    #     self.background.fill(self.background_color)
 
-        #img is the surface holding the text only, to be placed on the background of the button
-        words = self.font.render(self.text, True, self.text_color)
+    #     #img is the surface holding the text only, to be placed on the background of the button
+    #     words = self.font.render(self.text, True, self.text_color)
 
-        #place the image on the background
-        self.background.blit(words, (0,0))
+    #     #place the image on the background
+    #     self.background.blit(words, (0,0))
 
-        #place the button on the display surface
-        self.screen.blit(self.background, self.origin)
+    #     #place the button on the display surface
+    #     self.screen.blit(self.background, self.origin)
 
 
     
@@ -315,7 +318,7 @@ def test():
                 print(input_ele.addChar(inputChar))
             
         
-        print(game_state)
+        # print(game_state)
         pygame.display.flip()
         
 

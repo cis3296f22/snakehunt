@@ -7,12 +7,23 @@ import comm
 from game import *
 
 class Server():
+
     def __init__(self):
         self.game = Game(self)
-        self.host = socket.gethostbyname(socket.gethostname())
+        self.host = self.get_ip_address()
         self.port = 5555
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.next_id = 0
+
+    def get_ip_address(self):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.9", 80))
+            ip = s.getsockname()[0]
+            s.close()
+        except:
+            return socket.gethostbyname(socket.gethostname())
+        return ip
         
     def start(self):
         try:
@@ -88,7 +99,7 @@ class Server():
                 input_size_as_bytes = comm.receive_data(player.socket, comm.MSG_LEN)
                 input_size = comm.to_int(input_size_as_bytes)
                 input = pickle.loads(comm.receive_data(player.socket, input_size))
-                print(input)
+                #print(input)
             except:
                 self.game.remove_player(player)
                 break

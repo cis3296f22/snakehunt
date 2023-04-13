@@ -48,8 +48,12 @@ class Client():
         try:
             self.socket.connect(self.addr)
             return True
-        except:
-            print('Connection failed')
+        except (ConnectionRefusedError, OSError) as error:
+            self.socket.close()
+            # self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.__init__()
+            print(error)
+            print(self.addr)
             return False
 
     def check_name(self, name):
@@ -380,7 +384,7 @@ def main():
 
     #make banner, menu, and elements
     '''
-    SnakeBanner(screen,background_color, edge_offset,  points, xblocks, yblocks)
+    SnakeBanner(screen,background_color, edge_offset,  points, xblocks, yblocks, font)
     Button(text, font, text_color, background_color, rect, screen, state)
     Menu(screen,background_color, edge_offset, state)
 
@@ -390,7 +394,7 @@ def main():
     #menu
     pause_menu = MenuScreen(screen, (150,150,150), 50, "menu")
     #buttons
-    title_button = Button("title", font, TEXT_COL, BUTTON_COL,              (100, 90, 100, 50), screen, "title")
+    title_button = Button("Title Screen", font, TEXT_COL, BUTTON_COL,              (100, 90, 200, 50), screen, "title")
     quit_button = Button("quit", font, TEXT_COL, BUTTON_COL,                (410, 90, 100, 50), screen, "quit")
     connect_button = Button("connect", font, TEXT_COL, BUTTON_COL,          (410, 260, 200, 50), screen, "connecting")
     name_checking_button = Button("check name", font, TEXT_COL, BUTTON_COL, (410, 400, 200, 50), screen, "name_checking")
@@ -465,7 +469,7 @@ def main():
             else:
                 input_ip.addChar(inputChar)
                 ip = input_ip.text
-                print("ip: ", ip)
+                #print("ip: ", ip)
 
             
         elif game_state == "port_input":
@@ -477,18 +481,19 @@ def main():
             else:
                 input_port.addChar(inputChar)
                 port = input_port.text
-                print("port: ", port)
+                #print("port: ", port)
 
         elif game_state == "connecting":
             pause_menu.draw()
             #connection works, get the name of the user
-            if client.connect(ip, port):
-                print("connection success")
+            if connected == True:
+                game_state = "menu"
+            elif client.connect(ip, port):
+                #print("connection success")
                 game_state = "menu"
                 connected = True
             else:
                 game_state = "menu"
-                print("connection failed")
 
             
         elif game_state == "name_input":
@@ -500,7 +505,7 @@ def main():
             else:
                 input_name.addChar(inputChar)
                 name = input_name.text
-                print("name: ", name)
+                #print("name: ", name)
 
         elif game_state == "name_checking":
             pause_menu.draw()
@@ -521,9 +526,10 @@ def main():
             game.game_loop()
         
 
-        print(game_state)
-        print("clicked: ", clicked)
+        #print(game_state)
+        #print("clicked: ", clicked)
         pygame.display.flip()
+        clock.tick(18)
         
     pygame.event.get()
     pygame.quit()
