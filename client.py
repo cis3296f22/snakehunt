@@ -68,17 +68,7 @@ class Client():
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addr = None
 
-
-    def input_addr(self, ip, port):
-        self.addr = (ip, int(port))
-
-    def connect(self, ip, port):
-        if ip == None or port == None or len(ip) == 0 or len(port)==0:
-            print("must input ip and port")
-            return False
-        self.addr = (ip, int(port))
-
-    def connect(self):
+    def connect(self, address):
         """
         Connect to the currently stored address
         
@@ -88,14 +78,14 @@ class Client():
         """
 
         try:
-            self.socket.connect(self.addr)
+            print("address and port: ", address)
+            
+            self.socket.connect(address)
             return True
         except (ConnectionRefusedError, OSError) as error:
             self.socket.close()
-            # self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.__init__()
-            print(error)
-            print(self.addr)
+            print("error connecting: ", error)
             return False
 
     def check_name(self, name):
@@ -141,7 +131,7 @@ class Client():
 
     
 
-# class PauseMenu:
+# class Menu:
 #     """
 #     Menu that is displayed upon startup.
 
@@ -746,15 +736,14 @@ def main():
                 input_port.removeChar()
             else:
                 input_port.addChar(inputChar)
-                port = input_port.text
-                #print("port: ", port)
+                
 
         elif game_state == "connecting":
             pause_menu.draw()
             #connection works, get the name of the user
             if connected == True:
                 game_state = "menu"
-            elif client.connect(ip, port):
+            elif client.connect((input_ip.text, int(input_port.text))):
                 #print("connection success")
                 game_state = "menu"
                 connected = True

@@ -157,6 +157,9 @@ class InputDisplay(Element):
         else:
             self.allowedChars = ALLOWED_CHARS
 
+    def getText(self):
+        return self.text
+
     def check(self, pos):
         if self.rect.collidepoint(pos):
             if self.firstRun:
