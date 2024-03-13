@@ -198,6 +198,7 @@ class PauseMenu:
 
         naming_frame = ttk.Frame(frame)
         naming_frame.pack()
+        #ttk.Label(naming_frame, text = "Hello world").pack(side=tkinter.LEFT) #add the twitter feed here
         ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT)
         naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
         naming_entry.pack(side=tkinter.LEFT)
