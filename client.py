@@ -26,7 +26,7 @@ params = {
 
 # Obtain using bearer token
 headers = {
-    "Authorization": "AAAAAAAAAAAAAAAAAAAAAOMaswEAAAAAtFdkHtgt0KTgBRWXhDOyB9JoDWk%3DE9DKtw1Vms7hHcizq8aPYBeywYSSx4OFOJrdUgsbGEQHL58bCJ",
+    "Authorization": "AAAAAAAAAAAAAAAAAAAAAOMaswEAAAAAGHjj6Nar5uUAMGIaTVb7FlDywOU%3DgAudmveWI0QI8ud40Tcxf8QQQQ4sEmeTYBt7UlAtjSDsv4aFzp",
     "Content-Type": "application/json"
 }
 
