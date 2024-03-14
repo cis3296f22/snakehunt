@@ -13,6 +13,23 @@ import sys
 from gamedata import *
 import comm
 
+import requests
+
+# Twitter API v2 endpoint to fetch the user's tweets
+url = "https://api.twitter.com/2/tweets"
+
+# Replace 'Twitter' with the username of the official account
+params = {
+    "usernames": "TempleAlert",  # Official Twitter account username
+    "max_results": 1          # Number of tweets to fetch (1 for the latest tweet)
+}
+
+# Obtain using bearer token
+headers = {
+    "Authorization": "AAAAAAAAAAAAAAAAAAAAAOMaswEAAAAAtFdkHtgt0KTgBRWXhDOyB9JoDWk%3DE9DKtw1Vms7hHcizq8aPYBeywYSSx4OFOJrdUgsbGEQHL58bCJ",
+    "Content-Type": "application/json"
+}
+
 root = Tk()
 
 def resource_path(relative_path):
@@ -198,7 +215,21 @@ class PauseMenu:
 
         naming_frame = ttk.Frame(frame)
         naming_frame.pack()
-        #ttk.Label(naming_frame, text = "Hello world").pack(side=tkinter.LEFT) #add the twitter feed here
+
+        # Send request to Twitter API
+        response = requests.get(url, params=params, headers=headers)
+
+        # Check if request was successful
+        if response.status_code == 200:
+            data = response.json()
+            if "data" in data and len(data["data"]) > 0:
+                first_tweet = data["data"][0]
+                ttk.Label(naming_frame, text = "Latest tweet from Twitter:" + first_tweet["text"]).pack(side=tkinter.LEFT)
+            else:
+                ttk.Label(naming_frame, text = "No tweets found from the official account.").pack(side=tkinter.LEFT)
+        else:
+            ttk.Label(naming_frame, text = "Failed to fetch tweets. Status code:" + str(response.status_code)).pack(side=tkinter.LEFT)
+
         ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT)
         naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
         naming_entry.pack(side=tkinter.LEFT)
