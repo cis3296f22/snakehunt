@@ -13,22 +13,7 @@ import sys
 from gamedata import *
 import comm
 
-import requests
-
-# Twitter API v2 endpoint to fetch the user's tweets
-url = "https://api.twitter.com/2/tweets"
-
-# Replace 'Twitter' with the username of the official account
-params = {
-    "usernames": "TempleAlert",  # Official Twitter account username
-    "max_results": 1          # Number of tweets to fetch (1 for the latest tweet)
-}
-
-# Obtain using bearer token
-headers = {
-    "Authorization": "AAAAAAAAAAAAAAAAAAAAAOMaswEAAAAAGHjj6Nar5uUAMGIaTVb7FlDywOU%3DgAudmveWI0QI8ud40Tcxf8QQQQ4sEmeTYBt7UlAtjSDsv4aFzp",
-    "Content-Type": "application/json"
-}
+import redditwarp.SYNC
 
 root = Tk()
 
@@ -216,19 +201,11 @@ class PauseMenu:
         naming_frame = ttk.Frame(frame)
         naming_frame.pack()
 
-        # Send request to Twitter API
-        response = requests.get(url, params=params, headers=headers)
-
-        # Check if request was successful
-        if response.status_code == 200:
-            data = response.json()
-            if "data" in data and len(data["data"]) > 0:
-                first_tweet = data["data"][0]
-                ttk.Label(naming_frame, text = "Latest tweet from Twitter:" + first_tweet["text"]).pack(side=tkinter.LEFT)
-            else:
-                ttk.Label(naming_frame, text = "No tweets found from the official account.").pack(side=tkinter.LEFT)
-        else:
-            ttk.Label(naming_frame, text = "Failed to fetch tweets. Status code:" + str(response.status_code)).pack(side=tkinter.LEFT)
+        #pulls first post from temple reddit and displays the name and link
+        client = redditwarp.SYNC.Client()
+        m = next(client.p.subreddit.pull.top('Temple', amount=1, time='hour'))
+        ttk.Label(naming_frame, text = "Latest post from reddit: " + m.title).pack(side=tkinter.LEFT)
+        ttk.Label(naming_frame, text = "Link of the post: " + m.permalink).pack(side=tkinter.LEFT)
 
         ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT)
         naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
