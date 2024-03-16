@@ -198,21 +198,24 @@ class PauseMenu:
         frame = ttk.Frame(root, padding=10)
         frame.pack()
 
-        naming_frame = ttk.Frame(frame)
-        naming_frame.pack()
+        reddit_frame = ttk.Frame(frame)
+        reddit_frame.pack()
 
         #pulls first post from temple reddit and displays the name and link
         client = redditwarp.SYNC.Client()
         m = next(client.p.subreddit.pull.top('Temple', amount=1, time='hour'))
-        ttk.Label(naming_frame, text = "Latest post from reddit: " + m.title).pack(side=tkinter.TOP)
-        ttk.Label(naming_frame, text = "Link of the post: " + m.permalink).pack(side=tkinter.LEFT)
+        ttk.Label(reddit_frame, text = "Latest post from reddit: " + m.title).pack(side=tkinter.TOP)
+        ttk.Label(reddit_frame, text = "Link of the post: " + m.permalink).pack(side=tkinter.TOP)
 
-        ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.TOP)
+        naming_frame = ttk.Frame(frame)
+        naming_frame.pack(pady=10)
+
+        ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT, padx=10) # padx 10
         naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
         naming_entry.pack(side=tkinter.LEFT)
 
-        self.name_feedback = ttk.Label(frame, text = "")
-        self.name_feedback.pack(pady=10)
+        #self.name_feedback = ttk.Label(frame, text = "")
+        #self.name_feedback.pack(pady=10)
 
         buttons_frame = ttk.Frame(frame)
         buttons_frame.pack(pady=5)
