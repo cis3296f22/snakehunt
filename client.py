@@ -9,26 +9,9 @@ from threading import Thread
 from tkinter import *
 from tkinter import ttk
 import sys
-
+import time
 from gamedata import *
 import comm
-
-import requests
-
-# Twitter API v2 endpoint to fetch the user's tweets
-url = "https://api.twitter.com/2/tweets"
-
-# Replace 'Twitter' with the username of the official account
-params = {
-    "usernames": "TempleAlert",  # Official Twitter account username
-    "max_results": 1          # Number of tweets to fetch (1 for the latest tweet)
-}
-
-# Obtain using bearer token
-headers = {
-    "Authorization": "AAAAAAAAAAAAAAAAAAAAAOMaswEAAAAAGHjj6Nar5uUAMGIaTVb7FlDywOU%3DgAudmveWI0QI8ud40Tcxf8QQQQ4sEmeTYBt7UlAtjSDsv4aFzp",
-    "Content-Type": "application/json"
-}
 
 root = Tk()
 
@@ -216,20 +199,6 @@ class PauseMenu:
         naming_frame = ttk.Frame(frame)
         naming_frame.pack()
 
-        # Send request to Twitter API
-        response = requests.get(url, params=params, headers=headers)
-
-        # Check if request was successful
-        if response.status_code == 200:
-            data = response.json()
-            if "data" in data and len(data["data"]) > 0:
-                first_tweet = data["data"][0]
-                ttk.Label(naming_frame, text = "Latest tweet from Twitter:" + first_tweet["text"]).pack(side=tkinter.LEFT)
-            else:
-                ttk.Label(naming_frame, text = "No tweets found from the official account.").pack(side=tkinter.LEFT)
-        else:
-            ttk.Label(naming_frame, text = "Failed to fetch tweets. Status code:" + str(response.status_code)).pack(side=tkinter.LEFT)
-
         ttk.Label(naming_frame, text = "Display Name: ").pack(side=tkinter.LEFT)
         naming_entry = Entry(naming_frame, width=25, textvariable=self.current_name)
         naming_entry.pack(side=tkinter.LEFT)
@@ -392,6 +361,14 @@ class Game():
         pygame.draw.rect(self.window, color, left_eye)
         pygame.draw.rect(self.window, color, right_eye)
 
+    def display_time(self):
+        current_time = time.strftime("%H:%M:%S")
+        time_font = pygame.font.Font(None, 24)
+        time_text = time_font.render(current_time, True, (255, 255, 255))
+        time_rect = time_text.get_rect()
+        time_rect.topright = (self.camera[0] - 10, 10)
+        self.window.blit(time_text, time_rect)
+
     def render(self, game_data):
         """
         Render all objects viewable in the player's camera.
@@ -435,7 +412,11 @@ class Game():
         self.draw_eyes(my_head, head_rect)
         for body_part in snake[1:]:
             pygame.draw.rect(self.window, body_part.color, make_rect(head_rect, my_head.position, body_part.position, body_part.width))
-            
+        
+        #added time display
+        self.display_time()
+        pygame.display.flip()
+
         self.show_leaderboard(game_data.leaderboard)
         pygame.display.flip()
 
