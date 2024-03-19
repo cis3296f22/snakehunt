@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module server</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>server</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cjaffar%5Csoftwareprojects%5Csnake-hunt%5Cserver.py">c:\users\jaffar\softwareprojects\snake-hunt\server.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="comm.html">comm</a><br>
+</td><td width="25%" valign=top><a href="pickle.html">pickle</a><br>
+</td><td width="25%" valign=top><a href="socket.html">socket</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="server.html#Server">Server</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Server">class <strong>Server</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Game&nbsp;server<br>
+&nbsp;<br>
+Attributes<br>
+----------<br>
+game&nbsp;(Game):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Instance&nbsp;of&nbsp;the&nbsp;running&nbsp;game<br>
+&nbsp;<br>
+host&nbsp;(str):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Hostname&nbsp;of&nbsp;the&nbsp;machine<br>
+&nbsp;<br>
+port&nbsp;(int):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Port&nbsp;number<br>
+&nbsp;<br>
+s&nbsp;(socket.socket):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;TCP&nbsp;server&nbsp;socket<br>
+&nbsp;<br>
+next_id&nbsp;(int):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Unique&nbsp;ID&nbsp;to&nbsp;assign&nbsp;to&nbsp;next&nbsp;player<br>
+&nbsp;<br>
+Methods<br>
+-------<br>
+<a href="#Server-start">start</a>()<br>
+<a href="#Server-listen">listen</a>()<br>
+<a href="#Server-receive_name">receive_name</a>(player)<br>
+<a href="#Server-receive_input">receive_input</a>(player)<br>
+<a href="#Server-player_handler">player_handler</a>(player)<br>
+<a href="#Server-send_game_data">send_game_data</a>(player,&nbsp;game_data_serialized)<br>
+<a href="#Server-on_exit">on_exit</a>()<br>
+<a href="#Server-listen_exit">listen_exit</a>()<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Server-__init__"><strong>__init__</strong></a>(self)</dt><dd><tt>Initialize&nbsp;server.</tt></dd></dl>
+
+<dl><dt><a name="Server-listen"><strong>listen</strong></a>(self)</dt><dd><tt>Listen&nbsp;for&nbsp;connections,&nbsp;create&nbsp;a&nbsp;thread&nbsp;for&nbsp;each&nbsp;connected&nbsp;client.<br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<dl><dt><a name="Server-listen_exit"><strong>listen_exit</strong></a>(self)</dt><dd><tt>Prompt&nbsp;user&nbsp;to&nbsp;shutdown&nbsp;server.<br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<dl><dt><a name="Server-on_exit"><strong>on_exit</strong></a>(self)</dt><dd><tt>Notify&nbsp;players&nbsp;that&nbsp;server&nbsp;will&nbsp;shutdown&nbsp;and&nbsp;close&nbsp;sockets.<br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<dl><dt><a name="Server-player_handler"><strong>player_handler</strong></a>(self, player)</dt><dd><tt>Handle&nbsp;a&nbsp;connected&nbsp;player.<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+player&nbsp;(Player):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;player&nbsp;to&nbsp;handle<br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<dl><dt><a name="Server-receive_input"><strong>receive_input</strong></a>(self, player)</dt><dd><tt>Receive&nbsp;directional&nbsp;input&nbsp;or&nbsp;quit&nbsp;signal&nbsp;from&nbsp;player.<br>
+&nbsp;<br>
+Use&nbsp;input&nbsp;to&nbsp;change&nbsp;direction.<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+player&nbsp;(Player):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;player&nbsp;to&nbsp;receive&nbsp;input&nbsp;from<br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<dl><dt><a name="Server-receive_name"><strong>receive_name</strong></a>(self, player)</dt><dd><tt>Receive&nbsp;name&nbsp;input&nbsp;from&nbsp;a&nbsp;player<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+player&nbsp;(Player):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;player&nbsp;to&nbsp;listen&nbsp;to<br>
+&nbsp;<br>
+Return<br>
+------<br>
+True&nbsp;if&nbsp;the&nbsp;name&nbsp;was&nbsp;accepted,&nbsp;False&nbsp;if&nbsp;the&nbsp;player&nbsp;quits.</tt></dd></dl>
+
+<dl><dt><a name="Server-send_game_data"><strong>send_game_data</strong></a>(self, player, game_data_serialized)</dt><dd><tt>Send&nbsp;game&nbsp;data&nbsp;to&nbsp;a&nbsp;player<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+player&nbsp;(Player):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;player&nbsp;to&nbsp;send&nbsp;data&nbsp;to<br>
+&nbsp;<br>
+game_data_serialized&nbsp;(bytes):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Game&nbsp;data&nbsp;as&nbsp;a&nbsp;bytes&nbsp;<a href="builtins.html#object">object</a><br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<dl><dt><a name="Server-start"><strong>start</strong></a>(self)</dt><dd><tt>Start&nbsp;listening&nbsp;for&nbsp;connections&nbsp;and&nbsp;start&nbsp;game&nbsp;loop<br>
+&nbsp;<br>
+Return<br>
+------<br>
+None</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-Clock"><strong>Clock</strong></a>(...)</dt><dd><tt><a href="#-Clock">Clock</a>()&nbsp;-&gt;&nbsp;Clock<br>
+create&nbsp;an&nbsp;<a href="builtins.html#object">object</a>&nbsp;to&nbsp;help&nbsp;track&nbsp;time</tt></dd></dl>
+ <dl><dt><a name="-flr"><strong>flr</strong></a> = floor(x, /)</dt><dd><tt>Return&nbsp;the&nbsp;floor&nbsp;of&nbsp;x&nbsp;as&nbsp;an&nbsp;Integral.<br>
+&nbsp;<br>
+This&nbsp;is&nbsp;the&nbsp;largest&nbsp;integer&nbsp;&lt;=&nbsp;x.</tt></dd></dl>
+ <dl><dt><a name="-main"><strong>main</strong></a>()</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>BOARD</strong> = (1000, 1000)<br>
+<strong>CELL</strong> = 10<br>
+<strong>COLS</strong> = 100.0<br>
+<strong>MAX_NAME_LENGTH</strong> = 32<br>
+<strong>ROWS</strong> = 100.0<br>
+<strong>SHUT_RDWR</strong> = 2<br>
+<strong>SPEED</strong> = 10</td></tr></table>
+</body></html>

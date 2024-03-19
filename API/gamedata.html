@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module gamedata</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>gamedata</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cjaffar%5Csoftwareprojects%5Csnake-hunt%5Cgamedata.py">c:\users\jaffar\softwareprojects\snake-hunt\gamedata.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="gamedata.html#CellData">CellData</a>
+</font></dt><dt><font face="helvetica, arial"><a href="gamedata.html#GameData">GameData</a>
+</font></dt><dt><font face="helvetica, arial"><a href="gamedata.html#LeaderboardEntry">LeaderboardEntry</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="CellData">class <strong>CellData</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#CellData">CellData</a>(position,&nbsp;color,&nbsp;width,&nbsp;direction=None)<br>
+&nbsp;<br>
+A&nbsp;class&nbsp;containing&nbsp;info&nbsp;needed&nbsp;to&nbsp;render&nbsp;a&nbsp;block.<br>
+&nbsp;<br>
+A&nbsp;block&nbsp;is&nbsp;a&nbsp;generic&nbsp;rectangle&nbsp;that&nbsp;can&nbsp;represent&nbsp;anything.<br>
+&nbsp;<br>
+Attributes<br>
+----------<br>
+position&nbsp;(tuple[int,&nbsp;int]):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Position&nbsp;of&nbsp;the&nbsp;block<br>
+&nbsp;<br>
+color&nbsp;(tuple[int,&nbsp;int,&nbsp;int]):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Color&nbsp;of&nbsp;the&nbsp;block<br>
+&nbsp;<br>
+width&nbsp;(int):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Width&nbsp;of&nbsp;the&nbsp;block<br>
+&nbsp;<br>
+direction&nbsp;(tuple[int,&nbsp;int]):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Direction&nbsp;of&nbsp;the&nbsp;block<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="CellData-__init__"><strong>__init__</strong></a>(self, position, color, width, direction=None)</dt><dd><tt>Initialize&nbsp;<a href="#CellData">CellData</a>.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="GameData">class <strong>GameData</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#GameData">GameData</a>(snake,&nbsp;snakes,&nbsp;pellets,&nbsp;leaderboard,&nbsp;sound=None)<br>
+&nbsp;<br>
+Class&nbsp;holding&nbsp;everything&nbsp;that&nbsp;is&nbsp;needed&nbsp;to&nbsp;render&nbsp;the&nbsp;game.<br>
+&nbsp;<br>
+Attributes<br>
+----------<br>
+snake&nbsp;(Snake):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Receiving&nbsp;client's&nbsp;snake<br>
+&nbsp;<br>
+snakes&nbsp;(list):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;List&nbsp;of&nbsp;other&nbsp;snakes&nbsp;in&nbsp;game&nbsp;(excluding&nbsp;receiver)<br>
+&nbsp;<br>
+pellets&nbsp;(list):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;List&nbsp;of&nbsp;pellets&nbsp;in&nbsp;the&nbsp;game<br>
+&nbsp;<br>
+leaderboard&nbsp;(list):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;List&nbsp;of&nbsp;top&nbsp;players&nbsp;and&nbsp;their&nbsp;scores<br>
+&nbsp;<br>
+sound&nbsp;(comm.Message):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;sound&nbsp;file&nbsp;to&nbsp;play&nbsp;during&nbsp;this&nbsp;frame<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="GameData-__init__"><strong>__init__</strong></a>(self, snake, snakes, pellets, leaderboard, sound=None)</dt><dd><tt>Initialize&nbsp;game&nbsp;data.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="LeaderboardEntry">class <strong>LeaderboardEntry</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#LeaderboardEntry">LeaderboardEntry</a>(name,&nbsp;score)<br>
+&nbsp;<br>
+A&nbsp;class&nbsp;representing&nbsp;a&nbsp;leaderboard&nbsp;entry.<br>
+&nbsp;<br>
+Attributes<br>
+----------<br>
+name&nbsp;(str):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;of&nbsp;a&nbsp;player<br>
+&nbsp;<br>
+score&nbsp;(int):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Score&nbsp;of&nbsp;the&nbsp;player<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="LeaderboardEntry-__init__"><strong>__init__</strong></a>(self, name, score)</dt><dd><tt>Create&nbsp;leaderboard&nbsp;entry.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table>
+</body></html>

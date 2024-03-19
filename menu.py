@@ -46,13 +46,6 @@ class SnakeBanner():
         #Element(text, font, text_color, background_color, rect, screen)
         self.press_start = Element("press space to start", font, (200,200,200), (background_color), (250, 600, 265, 45), screen)
 
-
-
-##        self.background = pygame.Surface((screen.get_width() - edge_offset*2, screen.get_height() - edge_offset*2))
-
-
-
-        
     def draw(self):
         #draw background
         self.press_start.draw()
@@ -130,7 +123,7 @@ class Element:
         #draw background
         self.background.fill(self.background_color)
 
-        #img is the surface holding the text only, to be placed on the background of the button
+        #words is the surface holding the text only, to be placed on the background of the button
         words = self.font.render(self.text, True, self.text_color)
 
         #place the image on the background
@@ -151,21 +144,6 @@ class Button(Element):
         if self.rect.collidepoint(pos):
             return self.return_state
 
-    def draw(self):
-
-        #draw background
-        self.background.fill(self.background_color)
-
-        #img is the surface holding the text only, to be placed on the background of the button
-        words = self.font.render(self.text, True, self.text_color)
-
-        #place the image on the background
-        self.background.blit(words, (0,0))
-
-        #place the button on the display surface
-        self.screen.blit(self.background, self.origin)
-
-
 class InputDisplay(Element):
 
     def __init__(self, text, font, text_color, background_color, rect, screen, state, maxLen = 5, allowedChars=None):
@@ -179,6 +157,9 @@ class InputDisplay(Element):
         else:
             self.allowedChars = ALLOWED_CHARS
 
+    def getText(self):
+        return self.text
+
     def check(self, pos):
         if self.rect.collidepoint(pos):
             if self.firstRun:
@@ -188,7 +169,10 @@ class InputDisplay(Element):
             return self.return_state
 
     def addChar(self, char):
-        char = chr(char)
+        try:
+            char = chr(char)
+        except:
+            pass
         if len(self.text) + 1 > self.maxLen:
             return self.text
         if self.validateChar(char):
@@ -204,26 +188,6 @@ class InputDisplay(Element):
             return True
         return False
 
-    def draw(self):
-
-        #draw background
-        self.background.fill(self.background_color)
-
-        #img is the surface holding the text only, to be placed on the background of the button
-        words = self.font.render(self.text, True, self.text_color)
-
-        #place the image on the background
-        self.background.blit(words, (0,0))
-
-        #place the button on the display surface
-        self.screen.blit(self.background, self.origin)
-
-
-    
-    
-        
-    
-
 def test():
 
     #start pygame
@@ -238,7 +202,7 @@ def test():
     #variables NOTE: some things, like font, need to be built after a display
     font = pygame.font.SysFont("signpainter", 40)
     game_paused = False
-    game_state = "play"
+    game_state = "title"
     TEXT_COL = (255, 255, 255)
     BKGRD_COL = (100,100,100)
     run = True
@@ -257,7 +221,7 @@ def test():
     '''
     snake_banner = SnakeBanner(screen, (0,0,0), 10, POINTS, 14, 10, font)
     pause_menu = MenuScreen(screen, (150,150,150), 50, "pause")
-    resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "play")
+    resume_button = Button("resume", font, TEXT_COL, (200,200,200), (100,90,100,100), screen, "title")
     quit_button = Button("quit", font, TEXT_COL, (200,200,200), (210,90,100,100), screen, "quit")
     input_ele = InputDisplay("name", font, TEXT_COL, (200,200,200), (100, 200, 200, 50), screen, "input", maxLen = 10)
     pause_menu.set_elements((resume_button, quit_button, input_ele))
@@ -280,7 +244,7 @@ def test():
         #event handler
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and game_state == "play":
+                if event.key == pygame.K_SPACE and game_state == "title":
                     game_state = "pause"
                 else:
                     inputChar = event.key
@@ -288,7 +252,7 @@ def test():
                 run = False
 
         #check for state to display menus
-        if game_state == "play":
+        if game_state == "title":
             #screen.blit(banner_words, (0,0))
             clock.tick(15)
             snake_banner.draw()
@@ -315,7 +279,7 @@ def test():
                 print(input_ele.addChar(inputChar))
             
         
-        print(game_state)
+        # print(game_state)
         pygame.display.flip()
         
 
