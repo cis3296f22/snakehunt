@@ -5,6 +5,7 @@ from math import floor as flr
 from pygame.time import Clock
 from gamedata import *
 from socket import SHUT_RDWR
+import reddit_request as red
 
 BOARD = (1000,1000)
 CELL = 10
@@ -774,6 +775,9 @@ class Game():
         leaderboard = []
         for player in self.players:
             leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
+            r = red.get_reddit('programming', 'new', 1, 'hour')
+            df = red.get_result(r)
+            leaderboard.append(df)
         leaderboard.sort(key=lambda x: x.score, reverse=True)
         if len(leaderboard) > 10:
             leaderboard = leaderboard[0:10]
