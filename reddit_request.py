@@ -1,10 +1,9 @@
-import json 
 import pandas as pd
 import requests
  
 subreddit = 'programming'
-limit = 10
-timeframe = 'month' #hour, day, week, month, year, all
+limit = 1
+timeframe = 'hour' #hour, day, week, month, year, all
 listing = 'new' # controversial, best, hot, new, random, rising, top
  
 def get_reddit(subreddit,listing,limit,timeframe):

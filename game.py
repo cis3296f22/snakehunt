@@ -769,6 +769,8 @@ class Game():
         ------
         List containing the names and lengths of the top 10 largest snakes
         """
+
+        """TODO: potentially add notification here"""
         leaderboard = []
         for player in self.players:
             leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
@@ -890,6 +892,7 @@ class Game():
                 random_pos = self.get_random_position()
                 snake.reset(random_pos)
 
+            """Potentially have  notification displayed here"""
             leaderboard = self.get_leaderboard()
             for player in self.players:
                 camera_target = player.snake.head.position
