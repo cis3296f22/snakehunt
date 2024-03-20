@@ -5,7 +5,7 @@ from math import floor as flr
 from pygame.time import Clock
 from gamedata import *
 from socket import SHUT_RDWR
-import reddit_request as red
+from reddit_request import reddit as red
 
 BOARD = (1000,1000)
 CELL = 10
@@ -459,8 +459,8 @@ class Pellet():
         ------
         A tuple [int, int] representing the random position
         """
-        xpos = randint(1, COLS-1)*CELL
-        ypos = randint(1,ROWS-1)*CELL
+        xpos = randint(1, int(COLS)-1)*CELL
+        ypos = randint(1,int(ROWS)-1)*CELL
         return (xpos, ypos)
 
     def getPos(self):
@@ -774,10 +774,10 @@ class Game():
         """TODO: potentially add notification here"""
         leaderboard = []
         for player in self.players:
-            leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
             r = red.get_reddit('programming', 'new', 1, 'hour')
-            df = red.get_result(r)
-            leaderboard.append(df)
+            df = red.get_results(r)
+            leaderboard.append(LeaderboardEntry(df, 0))
+            leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
         leaderboard.sort(key=lambda x: x.score, reverse=True)
         if len(leaderboard) > 10:
             leaderboard = leaderboard[0:10]
@@ -840,8 +840,8 @@ class Game():
         A tuple[int, int] containing the position
         """
         while True:
-            x_pos = randint(0, COLS - 1) * CELL
-            y_pos = randint(0, ROWS - 1) * CELL
+            x_pos = randint(0, int(COLS) - 1) * CELL
+            y_pos = randint(0, int(ROWS) - 1) * CELL
             position = (x_pos, y_pos)
             for player in self.players:
                 if player.snake.collides_position(position):
@@ -896,7 +896,6 @@ class Game():
                 random_pos = self.get_random_position()
                 snake.reset(random_pos)
 
-            """Potentially have  notification displayed here"""
             leaderboard = self.get_leaderboard()
             for player in self.players:
                 camera_target = player.snake.head.position
