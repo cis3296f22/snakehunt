@@ -41,8 +41,8 @@ class Server():
     def __init__(self):
         """Initialize server."""
         self.game = Game(self)
-        self.host = socket.gethostbyname(socket.gethostname())
-        self.port = 5555
+        self.host = '0.0.0.0'
+        self.port = 3000
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.next_id = 0
         
