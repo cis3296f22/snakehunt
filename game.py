@@ -5,6 +5,7 @@ from math import floor as flr
 from pygame.time import Clock
 from gamedata import *
 from socket import SHUT_RDWR
+from reddit_request import reddit as red
 
 BOARD = (1000,1000)
 CELL = 10
@@ -458,8 +459,8 @@ class Pellet():
         ------
         A tuple [int, int] representing the random position
         """
-        xpos = randint(1, COLS-1)*CELL
-        ypos = randint(1,ROWS-1)*CELL
+        xpos = randint(1, int(COLS)-1)*CELL
+        ypos = randint(1,int(ROWS)-1)*CELL
         return (xpos, ypos)
 
     def getPos(self):
@@ -769,8 +770,13 @@ class Game():
         ------
         List containing the names and lengths of the top 10 largest snakes
         """
+
+        """TODO: potentially add notification here"""
         leaderboard = []
         for player in self.players:
+            r = red.get_reddit('programming', 'new', 1, 'hour')
+            df = red.get_results(r)
+            leaderboard.append(LeaderboardEntry(df, 0))
             leaderboard.append(LeaderboardEntry(player.name, player.snake.length))
         leaderboard.sort(key=lambda x: x.score, reverse=True)
         if len(leaderboard) > 10:
@@ -834,8 +840,8 @@ class Game():
         A tuple[int, int] containing the position
         """
         while True:
-            x_pos = randint(0, COLS - 1) * CELL
-            y_pos = randint(0, ROWS - 1) * CELL
+            x_pos = randint(0, int(COLS) - 1) * CELL
+            y_pos = randint(0, int(ROWS) - 1) * CELL
             position = (x_pos, y_pos)
             for player in self.players:
                 if player.snake.collides_position(position):
