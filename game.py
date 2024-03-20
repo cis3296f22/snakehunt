@@ -450,6 +450,7 @@ class Pellet():
         self.is_remains = is_remains    # Is this pellet part of the remains of a dead snake?
         self.width = CELL
         self.height = CELL
+        #self.id = iD
 
     def setRandomPos(self):
         """
@@ -527,6 +528,8 @@ class RandomPellets():
     val_1 = ((150,255,150), 1)
     val_2 = ((150,150,255), 2)
     val_3 = ((255,150,150), 3)
+    val_4 = ((0, 0, 150), randint(20, 50))
+    #val_5 = ((0,200, 0), -2)
 
     def __init__(self, numPellets):
         """Create RandomPellets object."""
@@ -542,7 +545,10 @@ class RandomPellets():
         ------
         A tuple containing the color and the value
         """
-        val = randint(0, 10)
+        val = randint(0, 15)
+        if val == 11:
+            #val_4 = ((0, 0, 150), randint(10, 69))
+            return self.val_4
         if val == 10:
             return self.val_3
         elif val > 7:
@@ -560,6 +566,7 @@ class RandomPellets():
         """
         pellets = []
         for i in range(self.numPellets):
+            #val = self.setColor()
             pel = Pellet(self.setColor())
             pos = self.availablePositions.pop(randint(0,len(self.availablePositions)-1))
             pel.setPos(pos[0],pos[1])
@@ -628,6 +635,7 @@ class RandomPellets():
         ------
         None
         """
+        
         self.pellets = self.pellets + pellets
 
 class Camera():
