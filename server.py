@@ -42,7 +42,7 @@ class Server():
         """Initialize server."""
         self.game = Game(self)
         self.host = '0.0.0.0'
-        self.port = 3000
+        self.port = 4090
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.next_id = 0
         
