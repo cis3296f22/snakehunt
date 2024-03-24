@@ -29,7 +29,6 @@ class reddit():
         Create a DataFrame Showing Title, URL, Score and Number of Comments.
         '''
         myDict = {}
-        for post in r['data']['children']:
-            myDict[post['data']['title']] = {'url':post['data']['url'],'score':post['data']['score'],'comments':post['data']['num_comments']}
-        df = pd.DataFrame.from_dict(myDict, orient='index')
-        return df
+        #for post in r['data']['children']:
+        #    myDict[post['data']['title']] = {'url':post['data']['url'],'score':post['data']['score']}
+        return r['data']['children'][0]['data']['title'] #gets the first post title in the list of children data
